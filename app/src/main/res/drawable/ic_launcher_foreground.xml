@@ -1,0 +1,43 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Weicher Schatten unter dem Auge -->
+    <path
+        android:pathData="M24,55.5 C40,34 68,34 84,55.5 C68,77 40,77 24,55.5 Z"
+        android:fillColor="#22001B3A" />
+
+    <!-- Augen-Lidkoerper (weiss) -->
+    <path
+        android:pathData="M24,54 C40,33 68,33 84,54 C68,75 40,75 24,54 Z"
+        android:fillColor="#FFFFFFFF" />
+
+    <!-- Iris mit warmem Comfort-Verlauf -->
+    <path android:pathData="M39,54 a15,15 0 1,0 30,0 a15,15 0 1,0 -30,0 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="radial"
+                android:centerX="49"
+                android:centerY="49"
+                android:gradientRadius="21">
+                <item android:offset="0.0" android:color="#FFFFCE6B" />
+                <item android:offset="0.55" android:color="#FFFFB020" />
+                <item android:offset="1.0" android:color="#FFF08A00" />
+            </gradient>
+        </aapt:attr>
+    </path>
+
+    <!-- Pupille -->
+    <path
+        android:pathData="M47,54 a7,7 0 1,0 14,0 a7,7 0 1,0 -14,0 Z"
+        android:fillColor="#FF16233A" />
+
+    <!-- Glanzlicht -->
+    <path
+        android:pathData="M45.5,49 a3.4,3.4 0 1,0 6.8,0 a3.4,3.4 0 1,0 -6.8,0 Z"
+        android:fillColor="#FFFFFFFF" />
+
+</vector>

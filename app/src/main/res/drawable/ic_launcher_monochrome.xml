@@ -1,0 +1,15 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Lidkoerper mit ausgestanzter Iris (evenOdd) -->
+    <path
+        android:fillType="evenOdd"
+        android:fillColor="#FF000000"
+        android:pathData="M24,54 C40,33 68,33 84,54 C68,75 40,75 24,54 Z M39,54 a15,15 0 1,0 30,0 a15,15 0 1,0 -30,0 Z" />
+    <!-- Pupille -->
+    <path
+        android:fillColor="#FF000000"
+        android:pathData="M47,54 a7,7 0 1,0 14,0 a7,7 0 1,0 -14,0 Z" />
+</vector>
