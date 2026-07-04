@@ -7,29 +7,40 @@ import android.provider.Settings
 import android.text.TextUtils
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 /**
  * Lauscht auf Fenster-Wechsel. Sobald eine der Ziel-Apps (Kamera/Fotos) in den
  * Vordergrund kommt, wird der aktuelle Comfort-View-Wert des Systems gemerkt und auf
  * AUS gesetzt. Beim Wechsel zu einer anderen App wird der gemerkte Wert exakt wieder
  * hergestellt. Andere Einstellungen werden nicht angefasst.
+ *
+ * Beim (Neu-)Verbinden des Dienstes wird bewusst NICHTS geschrieben: Ohne
+ * canRetrieveWindowContent laesst sich die Vordergrund-App hier nicht ermitteln, und
+ * ein blindes Wiederherstellen wuerde den Filter mitten in der Kamera wieder
+ * einschalten. Der persistierte Zustand (suppressed/savedValue) wird stattdessen vom
+ * naechsten Fenster-Event korrekt aufgeloest – auch nach einem Geraete-Neustart.
  */
 class ComfortAccessibilityService : AccessibilityService() {
 
+    // Serieller Executor: haelt die Shizuku-Shell-Aufrufe (~100-250 ms) vom
+    // Main-Thread fern und garantiert die Reihenfolge von suppress/restore.
+    private lateinit var executor: ExecutorService
+
     override fun onServiceConnected() {
         super.onServiceConnected()
-        // Aufraeumen nach Neustart/Neubindung: Nur wiederherstellen, wenn wir NICHT
-        // (mehr) in einer Ziel-App sind – sonst wuerde der Filter mitten in der Kamera
-        // wieder angehen. Ist eine Ziel-App vorn, ggf. sauber unterdruecken.
-        val current = currentForegroundPackage()
-        val targets = Prefs.getPackages(this)
-        when {
-            current != null && current in targets -> {
-                if (!Prefs.getSuppressed(this)) suppress(current)
-            }
-            Prefs.getSuppressed(this) -> restore(current)
-        }
-        Log.i(TAG, "Dienst verbunden. Vordergrund=$current, Ziel-Packages=$targets")
+        executor = Executors.newSingleThreadExecutor()
+        Log.i(
+            TAG,
+            "Dienst verbunden. Ziel-Packages=${Prefs.getPackages(this)}, " +
+                "suppressed=${Prefs.getSuppressed(this)} (Aufloesung beim naechsten Fenster-Event)",
+        )
+    }
+
+    override fun onDestroy() {
+        if (::executor.isInitialized) executor.shutdown()
+        super.onDestroy()
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
@@ -39,12 +50,17 @@ class ComfortAccessibilityService : AccessibilityService() {
         // Overlays wie Benachrichtigungs-Shade / Tastatur / eigene App ignorieren,
         // damit sie ueber der Kamera keine vorzeitige Wiederherstellung ausloesen.
         if (pkg == packageName || pkg in IGNORED_PACKAGES) return
+        if (!::executor.isInitialized || executor.isShutdown) return
 
-        val targets = Prefs.getPackages(this)
-        if (pkg in targets) {
-            if (!Prefs.getSuppressed(this)) suppress(pkg)
-        } else {
-            if (Prefs.getSuppressed(this)) restore(pkg)
+        val isTarget = pkg in Prefs.getPackages(this)
+        // Suppressed-Pruefung erst IM Task, damit schnell aufeinanderfolgende Events
+        // (Kamera -> Launcher) seriell und ohne Doppel-Schreiben verarbeitet werden.
+        executor.execute {
+            if (isTarget) {
+                if (!Prefs.getSuppressed(this)) suppress(pkg)
+            } else {
+                if (Prefs.getSuppressed(this)) restore(pkg)
+            }
         }
     }
 
@@ -60,22 +76,14 @@ class ComfortAccessibilityService : AccessibilityService() {
     }
 
     /** Gemerkten System-Wert exakt wiederherstellen. */
-    private fun restore(triggerPkg: String?) {
+    private fun restore(triggerPkg: String) {
         val ns = Prefs.getNamespace(this)
         val key = Prefs.getKey(this)
         val saved = Prefs.getSavedValue(this) ?: Prefs.getOn(this)
         val res = SettingWriter.write(this, ns, key, saved)
         Prefs.setSuppressed(this, false, null)
-        Log.i(TAG, "App '${triggerPkg ?: "(Neustart)"}' -> $ns/$key Wiederherstellung auf $saved via ${res.method}, ok=${res.success}: ${res.message}")
+        Log.i(TAG, "App '$triggerPkg' -> $ns/$key Wiederherstellung auf $saved via ${res.method}, ok=${res.success}: ${res.message}")
     }
-
-    /** Package der aktuell aktiven App (best effort). */
-    private fun currentForegroundPackage(): String? =
-        try {
-            rootInActiveWindow?.packageName?.toString()?.takeIf { it.isNotBlank() }
-        } catch (_: Throwable) {
-            null
-        }
 
     override fun onInterrupt() {}
 
