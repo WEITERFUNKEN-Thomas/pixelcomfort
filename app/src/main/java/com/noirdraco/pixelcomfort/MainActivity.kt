@@ -1,7 +1,11 @@
 package com.noirdraco.pixelcomfort
 
+import android.app.StatusBarManager
+import android.content.ComponentName
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.drawable.Icon
+import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.ComponentActivity
@@ -41,6 +45,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -102,6 +107,7 @@ private fun SetupScreen(
     onRefresh: () -> Unit,
 ) {
     val context = LocalContext.current
+    val tileLabel = stringResource(R.string.qs_tile_label)
 
     var namespace by remember { mutableStateOf(Prefs.getNamespace(context)) }
     var key by remember { mutableStateOf(Prefs.getKey(context)) }
@@ -242,8 +248,51 @@ private fun SetupScreen(
             ) { Text("Bedienungshilfen oeffnen") }
         }
 
-        // ---- Schritt 3: Ziel-Apps ----
-        SectionCard("3. Ziel-Apps") {
+        // ---- Schritt 3: Schnelleinstellungs-Kachel ----
+        SectionCard("3. Schnelleinstellungs-Kachel") {
+            Text(
+                "Zum Umschalten von Hand gibt es die Kachel „Augenkomfort“. Sie zeigt den " +
+                    "Live-Zustand und braucht ebenfalls ein laufendes Shizuku.",
+                style = MaterialTheme.typography.bodySmall,
+            )
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                Button(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = {
+                        val sbm = context.getSystemService(StatusBarManager::class.java)
+                        if (sbm == null) {
+                            lastAction = "StatusBarManager nicht verfuegbar."
+                        } else {
+                            sbm.requestAddTileService(
+                                ComponentName(context, ComfortTileService::class.java),
+                                tileLabel,
+                                Icon.createWithResource(context, R.drawable.ic_qs_comfort),
+                                context.mainExecutor,
+                            ) { result ->
+                                lastAction = when (result) {
+                                    StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_ADDED ->
+                                        "Kachel hinzugefuegt."
+                                    StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_ALREADY_ADDED ->
+                                        "Kachel war schon vorhanden."
+                                    StatusBarManager.TILE_ADD_REQUEST_RESULT_TILE_NOT_ADDED ->
+                                        "Abgebrochen - Kachel nicht hinzugefuegt."
+                                    else -> "Kachel hinzufuegen: Ergebnis $result"
+                                }
+                            }
+                        }
+                    },
+                ) { Text("Kachel zu den Schnelleinstellungen hinzufuegen") }
+            } else {
+                Text(
+                    "Auf dieser Android-Version von Hand: Schnelleinstellungen ganz " +
+                        "aufziehen, Stift-Symbol antippen und „Augenkomfort“ nach oben ziehen.",
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+        }
+
+        // ---- Schritt 4: Ziel-Apps ----
+        SectionCard("4. Ziel-Apps") {
             OutlinedTextField(
                 value = packages,
                 onValueChange = { packages = it },
@@ -256,8 +305,8 @@ private fun SetupScreen(
             ) { Text("Speichern") }
         }
 
-        // ---- Schritt 4: Erweitert ----
-        SectionCard("4. Erweitert (Settings-Key)") {
+        // ---- Schritt 5: Erweitert ----
+        SectionCard("5. Erweitert (Settings-Key)") {
             Text(
                 "Nur aendern, falls der Augenkomfort-Modus auf deinem Geraet anders heisst. Der gemerkte Wert (AN) stammt immer live aus dem System – „Wert AN“ dient nur dem Test-Button.",
                 style = MaterialTheme.typography.bodySmall,
@@ -302,7 +351,7 @@ private fun SetupScreen(
         }
 
         // ---- Test ----
-        SectionCard("5. Test") {
+        SectionCard("6. Test") {
             Text(
                 "Schreibt sofort den jeweiligen Wert (ContentResolver, sonst Shizuku).",
                 style = MaterialTheme.typography.bodySmall,

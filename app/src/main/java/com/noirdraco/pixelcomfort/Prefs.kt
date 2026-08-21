@@ -81,4 +81,13 @@ object Prefs {
             putString(K_SAVED_VALUE, savedValue)
         }
     }
+
+    /**
+     * Nur den gemerkten Wert korrigieren, ohne das suppressed-Flag anzufassen.
+     * Wird gebraucht, wenn per Kachel von Hand umgeschaltet wird, waehrend eine
+     * Ziel-App vorn ist - sonst wuerde restore() diese Entscheidung ueberschreiben.
+     */
+    fun setSavedValue(c: Context, savedValue: String) {
+        sp(c).edit { putString(K_SAVED_VALUE, savedValue) }
+    }
 }

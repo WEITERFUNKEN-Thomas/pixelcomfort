@@ -21,6 +21,8 @@ Kamera/Fotos öffnen  ──▶  Comfort View AUS
 App verlassen        ──▶  vorheriger Zustand wiederhergestellt
 ```
 
+Zum Umschalten von Hand gibt es zusätzlich eine **Schnelleinstellungs-Kachel**.
+
 Dabei wird **immer der echte System-Zustand respektiert**: Der aktuelle Wert wird live gelesen und gemerkt – war der Filter vorher aus, bleibt er aus. Andere Einstellungen (Dynamisch, Intensität) werden nicht angetastet.
 
 ## 📱 Screenshots
@@ -45,6 +47,21 @@ Drei Bausteine:
 2. **SettingWriter** – versucht zuerst den `ContentResolver`; da `cv_enabled` ein `@hide`-Key ist, den Fremd-Apps weder lesen noch schreiben dürfen (auch nicht mit `WRITE_SECURE_SETTINGS`!), greift automatisch der Fallback …
 3. **Shizuku** – führt `settings get/put system cv_enabled …` mit ADB-Shell-Rechten aus. **Kein Root nötig.** Alle Shell-Aufrufe laufen auf einem seriellen Hintergrund-Thread.
 
+## 🎛️ Schnelleinstellungs-Kachel
+
+Die Kachel **„Augenkomfort"** schaltet den Filter von Hand um und zeigt den Live-Zustand
+(hell = an, dunkel = aus). Hinzufügen entweder in der App unter *3. Schnelleinstellungs-Kachel*
+(Android 13+) oder direkt in den Schnelleinstellungen über das Stift-Symbol.
+
+Sie greift auf denselben Key zu wie die Automatik und läuft über dieselbe serielle
+Warteschlange – beide können sich also nicht überholen. Schaltest du **während** eine
+Ziel-App vorn ist von Hand um, gilt deine Entscheidung auch nach dem Verlassen der App:
+der gemerkte Wert wird mitgezogen, statt später still überschrieben zu werden.
+
+Ohne laufendes Shizuku ist die Kachel *nicht verfügbar* (ausgegraut) – ohne Shizuku
+lässt sich `cv_enabled` weder lesen noch schreiben, ein klickbarer Schalter wäre dann
+nur irreführend.
+
 ## 🚀 Einrichtung
 
 Voraussetzungen: Pixel mit Android 17, [Shizuku](https://shizuku.rikka.app/) installiert und gestartet.
@@ -53,7 +70,8 @@ Voraussetzungen: Pixel mit Android 17, [Shizuku](https://shizuku.rikka.app/) ins
 2. **„Shizuku-Freigabe anfragen"** → im Shizuku-Dialog *Immer zulassen*
 3. **„WRITE_SETTINGS + WRITE_SECURE_SETTINGS per Shizuku erteilen"** (einmalig)
 4. **Bedienungshilfe aktivieren**: Einstellungen → Bedienungshilfen → *PixelComfort Auto-Aus* einschalten
-5. Fertig! Mit den Test-Buttons **Comfort AN / AUS** kannst du das Umschalten sofort prüfen – die Status-Karte oben zeigt live, ob der Filter gerade an ist.
+5. Optional: **„Kachel zu den Schnelleinstellungen hinzufügen"** für das manuelle Umschalten
+6. Fertig! Mit den Test-Buttons **Comfort AN / AUS** kannst du das Umschalten sofort prüfen – die Status-Karte oben zeigt live, ob der Filter gerade an ist.
 
 > ⚠️ **Nach jedem Neustart** muss Shizuku wieder laufen (bei kabellosem Debugging startet es via „Bei Systemstart starten" automatisch).
 
@@ -105,7 +123,8 @@ Namespace, Key und Werte lassen sich in der App unter **„Erweitert"** anpassen
 
 - **Shizuku muss laufen** – ohne aktiven Shizuku-Dienst kann der Key nicht geschrieben werden (er ist für Fremd-Apps gesperrt, der ContentResolver-Weg scheitert systembedingt).
 - **Advanced Protection Mode**: Android 17 deaktiviert damit Bedienungshilfen, die keine echten Barrierefreiheits-Tools sind. Die App erkennt und meldet das im Status.
-- Wird die **Bedienungshilfe manuell deaktiviert, während** Kamera/Fotos offen sind, bleibt der Filter aus (Test-Button „Comfort AN" oder Systemeinstellung nutzen).
+- Wird die **Bedienungshilfe manuell deaktiviert, während** Kamera/Fotos offen sind, bleibt der Filter aus (Kachel, Test-Button „Comfort AN" oder Systemeinstellung nutzen).
+- Im kompakten Kachel-Layout des Pixel zeigt Android **nur das Icon** – Label und Untertitel („An"/„Aus") erscheinen erst im Bearbeiten-Screen der Schnelleinstellungen.
 - Getestet auf **Pixel 10 Pro mit Android 17** – der `cv_*`-Key existiert vermutlich nur auf Pixel-Geräten mit dem Comfort-Filter-Feature (`com.android.pixeldisplayservice`).
 
 ## 📄 Rechtliches

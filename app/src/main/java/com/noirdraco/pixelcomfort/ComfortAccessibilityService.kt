@@ -7,8 +7,6 @@ import android.provider.Settings
 import android.text.TextUtils
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
 
 /**
  * Lauscht auf Fenster-Wechsel. Sobald eine der Ziel-Apps (Kamera/Fotos) in den
@@ -24,23 +22,13 @@ import java.util.concurrent.Executors
  */
 class ComfortAccessibilityService : AccessibilityService() {
 
-    // Serieller Executor: haelt die Shizuku-Shell-Aufrufe (~100-250 ms) vom
-    // Main-Thread fern und garantiert die Reihenfolge von suppress/restore.
-    private lateinit var executor: ExecutorService
-
     override fun onServiceConnected() {
         super.onServiceConnected()
-        executor = Executors.newSingleThreadExecutor()
         Log.i(
             TAG,
             "Dienst verbunden. Ziel-Packages=${Prefs.getPackages(this)}, " +
                 "suppressed=${Prefs.getSuppressed(this)} (Aufloesung beim naechsten Fenster-Event)",
         )
-    }
-
-    override fun onDestroy() {
-        if (::executor.isInitialized) executor.shutdown()
-        super.onDestroy()
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
@@ -50,12 +38,13 @@ class ComfortAccessibilityService : AccessibilityService() {
         // Overlays wie Benachrichtigungs-Shade / Tastatur / eigene App ignorieren,
         // damit sie ueber der Kamera keine vorzeitige Wiederherstellung ausloesen.
         if (pkg == packageName || pkg in IGNORED_PACKAGES) return
-        if (!::executor.isInitialized || executor.isShutdown) return
 
         val isTarget = pkg in Prefs.getPackages(this)
         // Suppressed-Pruefung erst IM Task, damit schnell aufeinanderfolgende Events
         // (Kamera -> Launcher) seriell und ohne Doppel-Schreiben verarbeitet werden.
-        executor.execute {
+        // SettingsWorker ist prozessweit und wird mit der Kachel geteilt, damit
+        // Automatik und manuelles Umschalten sich nicht ueberholen.
+        SettingsWorker.submit {
             if (isTarget) {
                 if (!Prefs.getSuppressed(this)) suppress(pkg)
             } else {

@@ -2,4 +2,5 @@
     <string name="app_name">PixelComfort</string>
     <string name="accessibility_service_label">PixelComfort Auto-Aus</string>
     <string name="accessibility_service_description">Deaktiviert den Augenkomfort-Modus automatisch, sobald die Kamera- oder Fotos-App im Vordergrund ist, und stellt ihn beim Verlassen wieder her.</string>
+    <string name="qs_tile_label">Augenkomfort</string>
 </resources>
