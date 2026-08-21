@@ -7,7 +7,7 @@
 ![minSdk](https://img.shields.io/badge/minSdk-26-blue)
 ![Root](https://img.shields.io/badge/Root-nicht%20n%C3%B6tig-success)
 ![Shizuku](https://img.shields.io/badge/ben%C3%B6tigt-Shizuku-orange)
-[![Release](https://img.shields.io/github/v/release/WEITERFUNKEN-Thomas/pixelcomfort?label=Download&color=blue)](https://github.com/WEITERFUNKEN-Thomas/pixelcomfort/releases/latest)
+[![Release](https://img.shields.io/badge/Download-v1.1-blue)](https://github.com/WEITERFUNKEN-Thomas/pixelcomfort/releases/latest)
 
 ---
 
