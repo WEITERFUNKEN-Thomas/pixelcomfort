@@ -2,7 +2,6 @@ package com.noirdraco.pixelcomfort
 
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.ComponentActivity
@@ -46,6 +45,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import com.noirdraco.pixelcomfort.ui.theme.PixelComfortTheme
 import rikka.shizuku.Shizuku
 
@@ -219,7 +219,7 @@ private fun SetupScreen(
                 onClick = {
                     val intent = Intent(
                         Settings.ACTION_MANAGE_WRITE_SETTINGS,
-                        Uri.parse("package:${context.packageName}"),
+                        "package:${context.packageName}".toUri(),
                     )
                     runCatching { context.startActivity(intent) }
                 },

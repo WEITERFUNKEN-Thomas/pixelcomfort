@@ -8,3 +8,6 @@ local.properties
 keystore.properties
 *.jks
 *.keystore
+
+# macOS
+.DS_Store

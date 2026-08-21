@@ -78,7 +78,7 @@ keyPassword=…
 
 Fehlt die Datei, wird das Release einfach unsigniert gebaut.
 
-**Stack:** Kotlin · Jetpack Compose (Material 3) · Shizuku-API 13.1.5 · AGP 9 · targetSdk 37
+**Stack:** Kotlin 2.4.10 · Jetpack Compose (Material 3, BOM 2026.08.00) · Shizuku-API 13.1.5 · AGP 9.3.1 · Gradle 9.7.1 · targetSdk 37
 
 ## 🔍 Debugging
 

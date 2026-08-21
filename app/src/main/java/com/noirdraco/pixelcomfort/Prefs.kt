@@ -1,6 +1,7 @@
 package com.noirdraco.pixelcomfort
 
 import android.content.Context
+import androidx.core.content.edit
 
 /**
  * Konfiguration und Laufzeit-Zustand. Wird von der MainActivity (Setup) und vom
@@ -60,13 +61,13 @@ object Prefs {
         on: String,
         packages: String,
     ) {
-        sp(c).edit()
-            .putString(K_NAMESPACE, namespace)
-            .putString(K_KEY, key)
-            .putString(K_OFF, off)
-            .putString(K_ON, on)
-            .putString(K_PACKAGES, packages)
-            .apply()
+        sp(c).edit {
+            putString(K_NAMESPACE, namespace)
+            putString(K_KEY, key)
+            putString(K_OFF, off)
+            putString(K_ON, on)
+            putString(K_PACKAGES, packages)
+        }
     }
 
     // ---- Laufzeit-Zustand ----
@@ -75,9 +76,9 @@ object Prefs {
     fun getSavedValue(c: Context): String? = sp(c).getString(K_SAVED_VALUE, null)
 
     fun setSuppressed(c: Context, suppressed: Boolean, savedValue: String?) {
-        sp(c).edit()
-            .putBoolean(K_SUPPRESSED, suppressed)
-            .putString(K_SAVED_VALUE, savedValue)
-            .apply()
+        sp(c).edit {
+            putBoolean(K_SUPPRESSED, suppressed)
+            putString(K_SAVED_VALUE, savedValue)
+        }
     }
 }
