@@ -7,6 +7,7 @@
 ![minSdk](https://img.shields.io/badge/minSdk-26-blue)
 ![Root](https://img.shields.io/badge/Root-nicht%20n%C3%B6tig-success)
 ![Shizuku](https://img.shields.io/badge/ben%C3%B6tigt-Shizuku-orange)
+[![Release](https://img.shields.io/github/v/release/WEITERFUNKEN-Thomas/pixelcomfort?label=Download&color=blue)](https://github.com/WEITERFUNKEN-Thomas/pixelcomfort/releases/latest)
 
 ---
 
@@ -66,7 +67,7 @@ nur irreführend.
 
 Voraussetzungen: Pixel mit Android 17, [Shizuku](https://shizuku.rikka.app/) installiert und gestartet.
 
-1. **App installieren** (Release-APK bauen, siehe unten) und öffnen
+1. **App installieren**: [neuestes APK aus den Releases](https://github.com/WEITERFUNKEN-Thomas/pixelcomfort/releases/latest) laden (oder selbst bauen, siehe unten) und öffnen
 2. **„Shizuku-Freigabe anfragen"** → im Shizuku-Dialog *Immer zulassen*
 3. **„WRITE_SETTINGS + WRITE_SECURE_SETTINGS per Shizuku erteilen"** (einmalig)
 4. **Bedienungshilfe aktivieren**: Einstellungen → Bedienungshilfen → *PixelComfort Auto-Aus* einschalten
