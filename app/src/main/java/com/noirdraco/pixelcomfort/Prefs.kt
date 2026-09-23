@@ -1,6 +1,7 @@
 package com.noirdraco.pixelcomfort
 
 import android.content.Context
+import android.content.SharedPreferences
 import androidx.core.content.edit
 
 /**
@@ -16,6 +17,14 @@ import androidx.core.content.edit
  */
 object Prefs {
     private const val FILE = "pixelcomfort_prefs"
+
+    /**
+     * Laufzeit-Zustand (suppressed/saved_value) liegt in einer eigenen Datei, die in
+     * backup_rules/data_extraction_rules vom Backup ausgeschlossen ist. Sonst wuerde
+     * ein auf ein neues Geraet zurueckgespielter "suppressed=true"-Stand dort beim
+     * ersten Fenster-Wechsel einen fremden Wert "wiederherstellen".
+     */
+    private const val STATE_FILE = "pixelcomfort_state"
 
     const val NS_SECURE = "secure"
     const val NS_SYSTEM = "system"
@@ -38,6 +47,25 @@ object Prefs {
 
     private fun sp(context: Context) =
         context.applicationContext.getSharedPreferences(FILE, Context.MODE_PRIVATE)
+
+    private fun state(context: Context): SharedPreferences {
+        val st = context.applicationContext.getSharedPreferences(STATE_FILE, Context.MODE_PRIVATE)
+        migrateState(sp(context), st)
+        return st
+    }
+
+    /** Bis v1.1 lag der Laufzeit-Zustand in der Konfigurationsdatei -> einmalig umziehen. */
+    private fun migrateState(from: SharedPreferences, to: SharedPreferences) {
+        if (!from.contains(K_SUPPRESSED) && !from.contains(K_SAVED_VALUE)) return
+        to.edit {
+            putBoolean(K_SUPPRESSED, from.getBoolean(K_SUPPRESSED, false))
+            putString(K_SAVED_VALUE, from.getString(K_SAVED_VALUE, null))
+        }
+        from.edit {
+            remove(K_SUPPRESSED)
+            remove(K_SAVED_VALUE)
+        }
+    }
 
     // ---- Konfiguration ----
 
@@ -72,11 +100,11 @@ object Prefs {
 
     // ---- Laufzeit-Zustand ----
 
-    fun getSuppressed(c: Context): Boolean = sp(c).getBoolean(K_SUPPRESSED, false)
-    fun getSavedValue(c: Context): String? = sp(c).getString(K_SAVED_VALUE, null)
+    fun getSuppressed(c: Context): Boolean = state(c).getBoolean(K_SUPPRESSED, false)
+    fun getSavedValue(c: Context): String? = state(c).getString(K_SAVED_VALUE, null)
 
     fun setSuppressed(c: Context, suppressed: Boolean, savedValue: String?) {
-        sp(c).edit {
+        state(c).edit {
             putBoolean(K_SUPPRESSED, suppressed)
             putString(K_SAVED_VALUE, savedValue)
         }
@@ -88,6 +116,6 @@ object Prefs {
      * Ziel-App vorn ist - sonst wuerde restore() diese Entscheidung ueberschreiben.
      */
     fun setSavedValue(c: Context, savedValue: String) {
-        sp(c).edit { putString(K_SAVED_VALUE, savedValue) }
+        state(c).edit { putString(K_SAVED_VALUE, savedValue) }
     }
 }

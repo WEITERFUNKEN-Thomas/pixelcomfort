@@ -28,7 +28,31 @@ object SettingWriter {
         val message: String,
     )
 
+    private val VALID_NAMESPACES = setOf(Prefs.NS_SYSTEM, Prefs.NS_SECURE, Prefs.NS_GLOBAL)
+
+    /** Settings-Keys: Buchstaben, Ziffern, `_`, `.`, `-` - aber kein fuehrendes `-` (Option). */
+    private val KEY_PATTERN = Regex("^[A-Za-z0-9_.][A-Za-z0-9_.-]*$")
+
+    /** Werte: nicht leer, ohne Leer-/Steuerzeichen. */
+    private val VALUE_PATTERN = Regex("^\\S+$")
+
+    /**
+     * Prueft Namespace/Key/Wert aus der Konfiguration, bevor sie an Shizuku gehen.
+     * Die Shell ist zwar schon aussen vor (Argument-Array), aber so landen auch keine
+     * unsinnigen Keys oder als Option missdeutbare Argumente beim settings-Kommando.
+     */
+    private fun validate(namespace: String, key: String, value: String? = null): String? = when {
+        namespace !in VALID_NAMESPACES -> "Ungueltiger Namespace '$namespace'"
+        !KEY_PATTERN.matches(key) -> "Ungueltiger Settings-Key '$key'"
+        value != null && !VALUE_PATTERN.matches(value) -> "Ungueltiger Wert '$value'"
+        else -> null
+    }
+
     fun read(context: Context, namespace: String, key: String): String? {
+        validate(namespace, key)?.let {
+            Log.w(TAG, "read abgelehnt: $it")
+            return null
+        }
         // 1) ContentResolver. Fuer nicht-oeffentliche System-Keys (z.B. cv_enabled)
         //    liefert das null, weil Fremd-Apps sie nicht lesen duerfen.
         val cr = context.contentResolver
@@ -49,7 +73,7 @@ object SettingWriter {
         // 2) Shizuku-Fallback
         if (ShizukuShell.isReady()) {
             return try {
-                val v = ShizukuShell.run("settings get $namespace $key").out.trim()
+                val v = ShizukuShell.run("settings", "get", namespace, key).out.trim()
                 if (v.isEmpty() || v == "null") null else v
             } catch (t: Throwable) {
                 Log.w(TAG, "read($namespace/$key) via Shizuku fehlgeschlagen", t)
@@ -60,6 +84,8 @@ object SettingWriter {
     }
 
     fun write(context: Context, namespace: String, key: String, value: String): WriteResult {
+        validate(namespace, key, value)?.let { return WriteResult(false, Method.NONE, it) }
+
         // 1) Versuch ueber ContentResolver
         val crError: String? = try {
             val ok = putViaContentResolver(context, namespace, key, value)
@@ -77,7 +103,7 @@ object SettingWriter {
         // 2) Fallback ueber Shizuku-Shell
         if (ShizukuShell.isReady()) {
             return try {
-                val res = ShizukuShell.run("settings put $namespace $key $value")
+                val res = ShizukuShell.run("settings", "put", namespace, key, value)
                 val readBack = read(context, namespace, key)
                 if (readBack == value) {
                     WriteResult(true, Method.SHIZUKU, "Shizuku-Shell (ContentResolver-Fallback): $key=$value")

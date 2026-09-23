@@ -35,9 +35,10 @@ class ComfortAccessibilityService : AccessibilityService() {
         if (event == null || event.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
         val pkg = event.packageName?.toString()
         if (pkg.isNullOrBlank()) return
-        // Overlays wie Benachrichtigungs-Shade / Tastatur / eigene App ignorieren,
-        // damit sie ueber der Kamera keine vorzeitige Wiederherstellung ausloesen.
-        if (pkg == packageName || pkg in IGNORED_PACKAGES) return
+        // Overlays wie Benachrichtigungs-Shade / Tastatur / Dialoge / eigene App
+        // ignorieren, damit sie ueber der Kamera keine vorzeitige Wiederherstellung
+        // ausloesen.
+        if (pkg == packageName || pkg in IGNORED_PACKAGES || pkg == currentImePackage()) return
 
         val isTarget = pkg in Prefs.getPackages(this)
         // Suppressed-Pruefung erst IM Task, damit schnell aufeinanderfolgende Events
@@ -74,6 +75,17 @@ class ComfortAccessibilityService : AccessibilityService() {
         Log.i(TAG, "App '$triggerPkg' -> $ns/$key Wiederherstellung auf $saved via ${res.method}, ok=${res.success}: ${res.message}")
     }
 
+    /**
+     * Package der aktiven Tastatur (DEFAULT_INPUT_METHOD = "pkg/.Klasse"). Live
+     * gelesen statt fest verdrahtet, damit auch andere Tastaturen als Gboard nicht
+     * als App-Wechsel zaehlen.
+     */
+    private fun currentImePackage(): String? =
+        runCatching {
+            Settings.Secure.getString(contentResolver, Settings.Secure.DEFAULT_INPUT_METHOD)
+                ?.substringBefore('/')
+        }.getOrNull()
+
     override fun onInterrupt() {}
 
     companion object {
@@ -81,7 +93,15 @@ class ComfortAccessibilityService : AccessibilityService() {
 
         private val IGNORED_PACKAGES = setOf(
             "com.android.systemui",
+            // Fallback, falls DEFAULT_INPUT_METHOD nicht lesbar ist
             "com.google.android.inputmethod.latin",
+            // System-Dialoge (z. B. Chooser/Resolver aelterer Versionen)
+            "android",
+            // Teilen-Menue (Chooser) ab Android 14
+            "com.android.intentresolver",
+            // Berechtigungs-Dialoge (Kamera/Standort beim ersten Start)
+            "com.google.android.permissioncontroller",
+            "com.android.permissioncontroller",
         )
 
         fun componentName(ctx: Context): ComponentName =

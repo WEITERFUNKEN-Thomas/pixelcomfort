@@ -205,7 +205,7 @@ private fun SetupScreen(
                         if (!ShizukuShell.isReady()) {
                             "Shizuku ist nicht bereit/freigegeben. Zuerst oben die Shizuku-Freigabe erteilen."
                         } else {
-                            val res = ShizukuShell.run(
+                            val res = ShizukuShell.runShell(
                                 "pm grant $pkg android.permission.WRITE_SECURE_SETTINGS; " +
                                     "appops set $pkg WRITE_SETTINGS allow; echo OK",
                             )
