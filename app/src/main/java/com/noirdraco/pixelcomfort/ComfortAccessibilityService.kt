@@ -3,24 +3,42 @@ package com.noirdraco.pixelcomfort
 import android.accessibilityservice.AccessibilityService
 import android.content.ComponentName
 import android.content.Context
+import android.os.Handler
+import android.os.Looper
 import android.provider.Settings
 import android.text.TextUtils
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
+import com.noirdraco.pixelcomfort.ComfortAutomation.Event
+import rikka.shizuku.Shizuku
 
 /**
  * Lauscht auf Fenster-Wechsel. Sobald eine der Ziel-Apps (Kamera/Fotos) in den
  * Vordergrund kommt, wird der aktuelle Comfort-View-Wert des Systems gemerkt und auf
  * AUS gesetzt. Beim Wechsel zu einer anderen App wird der gemerkte Wert exakt wieder
- * hergestellt. Andere Einstellungen werden nicht angefasst.
+ * hergestellt. Andere Einstellungen werden nicht angefasst. Die Entscheidungen selbst
+ * stehen in [ComfortAutomation].
  *
  * Beim (Neu-)Verbinden des Dienstes wird bewusst NICHTS geschrieben: Ohne
  * canRetrieveWindowContent laesst sich die Vordergrund-App hier nicht ermitteln, und
  * ein blindes Wiederherstellen wuerde den Filter mitten in der Kamera wieder
  * einschalten. Der persistierte Zustand (suppressed/savedValue) wird stattdessen vom
  * naechsten Fenster-Event korrekt aufgeloest – auch nach einem Geraete-Neustart.
+ *
+ * Nebenbei wacht der Dienst ueber Shizuku: Das System startet ihn nach einem
+ * Geraete-Neustart ohnehin, also prueft er kurz danach, ob Shizuku laeuft
+ * ([ShizukuWarning]).
  */
 class ComfortAccessibilityService : AccessibilityService() {
+
+    private val main = Handler(Looper.getMainLooper())
+    private val automation = ComfortAutomation(ServiceEnv())
+
+    private val startupCheck = Runnable { ShizukuWarning.check(this) }
+
+    private val shizukuConnected = Shizuku.OnBinderReceivedListener {
+        if (ShizukuShell.isReady()) ShizukuWarning.clear(this)
+    }
 
     override fun onServiceConnected() {
         super.onServiceConnected()
@@ -29,6 +47,15 @@ class ComfortAccessibilityService : AccessibilityService() {
             "Dienst verbunden. Ziel-Packages=${Prefs.getPackages(this)}, " +
                 "suppressed=${Prefs.getSuppressed(this)} (Aufloesung beim naechsten Fenster-Event)",
         )
+        runCatching { Shizuku.addBinderReceivedListenerSticky(shizukuConnected) }
+        main.removeCallbacks(startupCheck)
+        main.postDelayed(startupCheck, STARTUP_CHECK_DELAY_MS)
+    }
+
+    override fun onDestroy() {
+        main.removeCallbacks(startupCheck)
+        runCatching { Shizuku.removeBinderReceivedListener(shizukuConnected) }
+        super.onDestroy()
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
@@ -45,34 +72,71 @@ class ComfortAccessibilityService : AccessibilityService() {
         // (Kamera -> Launcher) seriell und ohne Doppel-Schreiben verarbeitet werden.
         // SettingsWorker ist prozessweit und wird mit der Kachel geteilt, damit
         // Automatik und manuelles Umschalten sich nicht ueberholen.
-        SettingsWorker.submit {
-            if (isTarget) {
-                if (!Prefs.getSuppressed(this)) suppress(pkg)
-            } else {
-                if (Prefs.getSuppressed(this)) restore(pkg)
-            }
+        SettingsWorker.submit { automation.onForeground(pkg, isTarget) }
+    }
+
+    /** Die echte Umgebung der Automatik: Settings, gemerkter Zustand, Log, Verlauf, Warnung. */
+    private inner class ServiceEnv : ComfortAutomation.Env {
+        private val ctx: Context get() = this@ComfortAccessibilityService
+        private val ns get() = Prefs.getNamespace(ctx)
+        private val key get() = Prefs.getKey(ctx)
+
+        override val offValue: String get() = Prefs.getOff(ctx)
+
+        override fun read(): String? = SettingWriter.read(ctx, ns, key)
+
+        override fun write(value: String): ComfortAutomation.Outcome {
+            val res = SettingWriter.write(ctx, ns, key, value)
+            return ComfortAutomation.Outcome(res.success, "via ${res.method}: ${res.message}")
         }
-    }
 
-    /** Aktuellen System-Wert merken und auf AUS setzen. */
-    private fun suppress(triggerPkg: String) {
-        val ns = Prefs.getNamespace(this)
-        val key = Prefs.getKey(this)
-        val current = SettingWriter.read(this, ns, key) ?: Prefs.getOn(this)
-        // Zuerst merken, dann schreiben (Zustand bleibt korrekt, auch wenn Write scheitert).
-        Prefs.setSuppressed(this, true, current)
-        val res = SettingWriter.write(this, ns, key, Prefs.getOff(this))
-        Log.i(TAG, "Ziel-App '$triggerPkg' -> $ns/$key AUS (gemerkt=$current) via ${res.method}, ok=${res.success}: ${res.message}")
-    }
+        override fun isSuppressed(): Boolean = Prefs.getSuppressed(ctx)
+        override fun savedValue(): String? = Prefs.getSavedValue(ctx)
+        override fun setState(suppressed: Boolean, savedValue: String?) =
+            Prefs.setSuppressed(ctx, suppressed, savedValue)
 
-    /** Gemerkten System-Wert exakt wiederherstellen. */
-    private fun restore(triggerPkg: String) {
-        val ns = Prefs.getNamespace(this)
-        val key = Prefs.getKey(this)
-        val saved = Prefs.getSavedValue(this) ?: Prefs.getOn(this)
-        val res = SettingWriter.write(this, ns, key, saved)
-        Prefs.setSuppressed(this, false, null)
-        Log.i(TAG, "App '$triggerPkg' -> $ns/$key Wiederherstellung auf $saved via ${res.method}, ok=${res.success}: ${res.message}")
+        override fun report(event: Event) {
+            val off = offValue
+            val now = System.currentTimeMillis()
+            val entry = when (event) {
+                is Event.Paused -> {
+                    Log.i(TAG, "Ziel-App '${event.pkg}' -> $ns/$key AUS (gemerkt=${event.from}) ok=${event.success} ${event.message}")
+                    History.Entry(
+                        now, History.Kind.PAUSE, label(event.pkg),
+                        from = History.comfortToken(event.from, off),
+                        to = History.OFF,
+                        success = event.success,
+                        message = if (event.success) "" else ShizukuShell.explain(event.message),
+                    )
+                }
+
+                is Event.Skipped -> {
+                    Log.w(TAG, "Ziel-App '${event.pkg}' -> $ns/$key nicht lesbar, es wird NICHT pausiert")
+                    History.Entry(
+                        now, History.Kind.SKIP, label(event.pkg),
+                        success = false,
+                        message = ShizukuShell.explain(History.Reason.UNREADABLE),
+                    )
+                }
+
+                is Event.Restored -> {
+                    Log.i(TAG, "App '${event.pkg}' -> $ns/$key Wiederherstellung auf ${event.to} ok=${event.success} ${event.message}")
+                    History.Entry(
+                        now, History.Kind.RESTORE,
+                        from = History.OFF,
+                        to = History.comfortToken(event.to, off),
+                        success = event.success,
+                        message = if (event.success) "" else ShizukuShell.explain(event.message),
+                    )
+                }
+            }
+            HistoryStore.add(ctx, entry)
+            if (!entry.success) ShizukuWarning.check(ctx)
+        }
+
+        private fun label(pkg: String): String =
+            runCatching { packageManager.getApplicationInfo(pkg, 0).loadLabel(packageManager).toString() }
+                .getOrDefault(pkg)
     }
 
     /**
@@ -90,6 +154,12 @@ class ComfortAccessibilityService : AccessibilityService() {
 
     companion object {
         const val TAG = "PixelComfort"
+
+        /**
+         * Wartezeit nach dem Start des Dienstes, bevor Shizuku geprueft wird. Nach einem
+         * Geraete-Neustart braucht ein automatisch startendes Shizuku einen Moment.
+         */
+        private const val STARTUP_CHECK_DELAY_MS = 90_000L
 
         private val IGNORED_PACKAGES = setOf(
             "com.android.systemui",

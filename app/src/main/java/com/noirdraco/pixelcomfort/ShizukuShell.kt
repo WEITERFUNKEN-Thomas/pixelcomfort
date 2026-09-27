@@ -41,6 +41,17 @@ object ShizukuShell {
     }
 
     /**
+     * Grund eines Fehlschlags fuer den Nutzer (Verlauf, Einblendung): Laeuft Shizuku
+     * nicht, ist das die eigentliche Ursache - die technische Meldung dazu hilft
+     * niemandem. Liefert ein Kuerzel aus [History.Reason], sonst die Technik-Meldung.
+     */
+    fun explain(technical: String): String = when {
+        !isBinderAlive() -> History.Reason.SHIZUKU_DOWN
+        !hasPermission() -> History.Reason.SHIZUKU_PERMISSION
+        else -> technical
+    }
+
+    /**
      * Obergrenze fuer einen Shizuku-Aufruf. Normal sind 100-250 ms; haengt ein
      * Aufruf, darf er den seriellen [SettingsWorker] nicht dauerhaft blockieren.
      */

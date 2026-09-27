@@ -42,9 +42,9 @@ object SettingWriter {
      * unsinnigen Keys oder als Option missdeutbare Argumente beim settings-Kommando.
      */
     private fun validate(namespace: String, key: String, value: String? = null): String? = when {
-        namespace !in VALID_NAMESPACES -> "Ungueltiger Namespace '$namespace'"
-        !KEY_PATTERN.matches(key) -> "Ungueltiger Settings-Key '$key'"
-        value != null && !VALUE_PATTERN.matches(value) -> "Ungueltiger Wert '$value'"
+        namespace !in VALID_NAMESPACES -> "Invalid namespace '$namespace'"
+        !KEY_PATTERN.matches(key) -> "Invalid settings key '$key'"
+        value != null && !VALUE_PATTERN.matches(value) -> "Invalid value '$value'"
         else -> null
     }
 
@@ -92,7 +92,7 @@ object SettingWriter {
             if (ok && read(context, namespace, key) == value) {
                 return WriteResult(true, Method.CONTENT_RESOLVER, "ContentResolver: $key=$value")
             }
-            if (!ok) "putString lieferte false" else "Wert liegt nach dem Schreiben nicht an"
+            if (!ok) "putString returned false" else "value not applied after write"
         } catch (t: Throwable) {
             // Erwartbar fuer nicht-oeffentliche System-Keys wie cv_enabled -> Shizuku uebernimmt.
             val msg = t.javaClass.simpleName + (t.message?.let { ": $it" } ?: "")
@@ -106,24 +106,24 @@ object SettingWriter {
                 val res = ShizukuShell.run("settings", "put", namespace, key, value)
                 val readBack = read(context, namespace, key)
                 if (readBack == value) {
-                    WriteResult(true, Method.SHIZUKU, "Shizuku-Shell (ContentResolver-Fallback): $key=$value")
+                    WriteResult(true, Method.SHIZUKU, "Shizuku shell (ContentResolver fallback): $key=$value")
                 } else {
                     WriteResult(
                         false,
                         Method.SHIZUKU,
-                        "Shizuku-Write ohne Wirkung (exit=${res.exitCode}, err=${res.err}, gelesen=$readBack)",
+                        "Shizuku write had no effect (exit=${res.exitCode}, err=${res.err}, read=$readBack)",
                     )
                 }
             } catch (t: Throwable) {
                 Log.e(TAG, "Shizuku-Write fehlgeschlagen", t)
-                WriteResult(false, Method.SHIZUKU, "Shizuku-Fehler: ${t.message}")
+                WriteResult(false, Method.SHIZUKU, "Shizuku error: ${t.message}")
             }
         }
 
         return WriteResult(
             false,
             Method.NONE,
-            "ContentResolver fehlgeschlagen ($crError) und Shizuku nicht verfuegbar",
+            "ContentResolver failed ($crError) and Shizuku not available",
         )
     }
 

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <!-- Dunkles Fenster-Theme, damit der Start im Dunkelmodus nicht weiss aufblitzt. -->
+    <style name="Theme.PixelComfort" parent="android:Theme.Material.NoActionBar" />
+</resources>

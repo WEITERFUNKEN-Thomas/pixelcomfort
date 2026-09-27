@@ -3,13 +3,13 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Lidkoerper mit ausgestanzter Iris (evenOdd) -->
+    <!-- Linse mit ausgestanzter Iris (evenOdd) -->
     <path
         android:fillType="evenOdd"
         android:fillColor="#FF000000"
-        android:pathData="M24,54 C40,33 68,33 84,54 C68,75 40,75 24,54 Z M39,54 a15,15 0 1,0 30,0 a15,15 0 1,0 -30,0 Z" />
+        android:pathData="M24,54 A36,36 0 0 1 84,54 A36,36 0 0 1 24,54 Z M42,54 a12,12 0 1,0 24,0 a12,12 0 1,0 -24,0 Z" />
     <!-- Pupille -->
     <path
         android:fillColor="#FF000000"
-        android:pathData="M47,54 a7,7 0 1,0 14,0 a7,7 0 1,0 -14,0 Z" />
+        android:pathData="M49,54 a5,5 0 1,0 10,0 a5,5 0 1,0 -10,0 Z" />
 </vector>

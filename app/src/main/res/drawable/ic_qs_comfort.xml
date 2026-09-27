@@ -9,13 +9,13 @@
     android:viewportWidth="24"
     android:viewportHeight="24"
     android:tint="?android:attr/colorControlNormal">
-    <!-- Lidkoerper mit ausgestanzter Iris (evenOdd) -->
+    <!-- Linse mit ausgestanzter Iris (evenOdd) -->
     <path
         android:fillType="evenOdd"
         android:fillColor="#FF000000"
-        android:pathData="M1.5,12 C7.1,4.65 16.9,4.65 22.5,12 C16.9,19.35 7.1,19.35 1.5,12 Z M6.75,12 a5.25,5.25 0 1,0 10.5,0 a5.25,5.25 0 1,0 -10.5,0 Z" />
+        android:pathData="M1.5,12 A12.6,12.6 0 0 1 22.5,12 A12.6,12.6 0 0 1 1.5,12 Z M7.8,12 a4.2,4.2 0 1,0 8.4,0 a4.2,4.2 0 1,0 -8.4,0 Z" />
     <!-- Pupille -->
     <path
         android:fillColor="#FF000000"
-        android:pathData="M9.55,12 a2.45,2.45 0 1,0 4.9,0 a2.45,2.45 0 1,0 -4.9,0 Z" />
+        android:pathData="M10.25,12 a1.75,1.75 0 1,0 3.5,0 a1.75,1.75 0 1,0 -3.5,0 Z" />
 </vector>

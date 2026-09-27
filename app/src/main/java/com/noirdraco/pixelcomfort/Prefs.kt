@@ -98,6 +98,11 @@ object Prefs {
         }
     }
 
+    /** Nur die Ziel-Apps speichern (App-Auswahl), Rest der Konfiguration bleibt. */
+    fun setPackages(c: Context, packages: Set<String>) {
+        sp(c).edit { putString(K_PACKAGES, AppList.serialize(packages)) }
+    }
+
     // ---- Laufzeit-Zustand ----
 
     fun getSuppressed(c: Context): Boolean = state(c).getBoolean(K_SUPPRESSED, false)

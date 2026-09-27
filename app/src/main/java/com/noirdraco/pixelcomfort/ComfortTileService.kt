@@ -64,16 +64,8 @@ class ComfortTileService : TileService() {
         }
 
         val target = if (current == off) on else off
-        val res = SettingWriter.write(this, ns, key, target)
-
-        if (res.success && Prefs.getSuppressed(this)) {
-            // Eine Ziel-App ist gerade vorn, die Automatik haelt den Filter unten und
-            // wuerde beim Verlassen den gemerkten Wert zurueckschreiben. Diese
-            // bewusste Handentscheidung soll das ueberleben, also den gemerkten Wert
-            // mitziehen statt sie spaeter still zu ueberschreiben.
-            Prefs.setSavedValue(this, target)
-            Log.i(TAG, "Kachel waehrend aktiver Unterdrueckung: gemerkter Wert auf $target nachgezogen")
-        }
+        // Zieht bei aktiver Unterdrueckung auch den gemerkten Wert nach.
+        val res = ComfortControl.write(this, target, ComfortControl.Source.TILE, from = current)
 
         Log.i(TAG, "Kachel -> $ns/$key von $current auf $target via ${res.method}, ok=${res.success}: ${res.message}")
         push(if (res.success) state(target) else currentState())
@@ -81,17 +73,17 @@ class ComfortTileService : TileService() {
 
     /** Liest den Live-Wert und leitet daraus den Kachel-Zustand ab. Worker-Thread! */
     private fun currentState(): TileState {
-        if (!ShizukuShell.isReady()) return TileState(Tile.STATE_UNAVAILABLE, "Shizuku nicht bereit")
+        if (!ShizukuShell.isReady()) return TileState(Tile.STATE_UNAVAILABLE, getString(R.string.tile_shizuku_not_ready))
         val value = SettingWriter.read(this, Prefs.getNamespace(this), Prefs.getKey(this))
-            ?: return TileState(Tile.STATE_UNAVAILABLE, "Wert nicht lesbar")
+            ?: return TileState(Tile.STATE_UNAVAILABLE, getString(R.string.tile_unreadable))
         return state(value)
     }
 
     private fun state(value: String): TileState =
         if (value == Prefs.getOff(this)) {
-            TileState(Tile.STATE_INACTIVE, "Aus")
+            TileState(Tile.STATE_INACTIVE, getString(R.string.value_off))
         } else {
-            TileState(Tile.STATE_ACTIVE, "An")
+            TileState(Tile.STATE_ACTIVE, getString(R.string.value_on))
         }
 
     /** Kachel auf dem Main-Thread aktualisieren. */
