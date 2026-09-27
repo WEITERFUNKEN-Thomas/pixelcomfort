@@ -1,133 +1,159 @@
 # 👁️ PixelComfort
 
-**Schaltet den Augenkomfort-Modus (Comfort View) auf dem Google Pixel automatisch aus, sobald Kamera oder Google Fotos geöffnet werden – und stellt danach exakt den vorherigen Zustand wieder her.**
+**English** · [Deutsch](README.de.md)
 
-![Platform](https://img.shields.io/badge/Plattform-Android%2017%20(API%2037)-3DDC84?logo=android&logoColor=white)
+**Turns Comfort View off automatically on Google Pixel as soon as you open the camera or Google Photos – and restores exactly the previous state when you leave.**
+
+![Platform](https://img.shields.io/badge/Platform-Android%2017%20(API%2037)-3DDC84?logo=android&logoColor=white)
 ![Language](https://img.shields.io/badge/Kotlin-Jetpack%20Compose-7F52FF?logo=kotlin&logoColor=white)
 ![minSdk](https://img.shields.io/badge/minSdk-26-blue)
-![Root](https://img.shields.io/badge/Root-nicht%20n%C3%B6tig-success)
-![Shizuku](https://img.shields.io/badge/ben%C3%B6tigt-Shizuku-orange)
-[![Release](https://img.shields.io/badge/Download-v1.1-blue)](https://github.com/WEITERFUNKEN-Thomas/pixelcomfort/releases/latest)
+![Root](https://img.shields.io/badge/Root-not%20required-success)
+![Shizuku](https://img.shields.io/badge/requires-Shizuku-orange)
+[![Releases](https://img.shields.io/badge/Download-Releases-blue)](https://github.com/WEITERFUNKEN-Thomas/pixelcomfort/releases/latest)
 
 ---
 
-## 🤔 Warum?
+## 🤔 Why?
 
-Der mit dem **Pixel Drop (März 2026)** eingeführte *Comfort-Filter* („Augenkomfort-Modus", Einstellungen → Display & Touch → Komfort-Filter) gibt dem Display eine wärmere, pastellige Optik – super für die Augen, aber **furchtbar beim Fotografieren**: Sucherbild und Fotos-Vorschau wirken farbstichig.
+The *comfort filter* introduced with the **Pixel Drop of March 2026** (“Comfort View”, Settings → Display & touch → Comfort filters) gives the display a warmer, pastel look. That is easy on the eyes but **terrible for taking photos**: the viewfinder and the Photos preview get a colour cast.
 
-Google bietet dafür – anders als beim Nachtlicht – **keinen Zeitplan und keine öffentliche API**. PixelComfort löst das automatisch:
+Unlike Night Light, Google offers **no schedule and no public API** for it. PixelComfort handles it automatically:
 
 ```
-Kamera/Fotos öffnen  ──▶  Comfort View AUS
-App verlassen        ──▶  vorheriger Zustand wiederhergestellt
+Open camera / Photos  ──▶  Comfort View OFF
+Leave the app         ──▶  previous state restored
 ```
 
-Zum Umschalten von Hand gibt es zusätzlich eine **Schnelleinstellungs-Kachel**.
+The **real system state is always respected**: the current value is read live and remembered – if the filter was off before, it stays off. Other settings (dynamic, intensity) are never touched.
 
-Dabei wird **immer der echte System-Zustand respektiert**: Der aktuelle Wert wird live gelesen und gemerkt – war der Filter vorher aus, bleibt er aus. Andere Einstellungen (Dynamisch, Intensität) werden nicht angetastet.
+## ✨ Features
+
+- **Automation** – pauses Comfort View in the apps you pick and restores it afterwards
+- **App picker** – choose the apps from a list with icons and search
+- **Main switch and Quick Settings tile** – switch Comfort View by hand
+- **Display** – sliders for display size (smallest width in dp) and font size, each with a *Default* button
+- **History** – shows when Comfort View was paused, restored or switched manually, and what went wrong
+- **Shizuku warning** – a notification tells you when Shizuku isn’t running
+- **Material You** – follows your system colours, light and dark
+- **English and German** – follows the system language, selectable per app on Android 13+
 
 ## 📱 Screenshots
 
-| Comfort View an | Comfort View aus |
-|:---:|:---:|
-| <img src="docs/screenshot-comfort-an.png" width="320" alt="Status: eingeschaltet"> | <img src="docs/screenshot-comfort-aus.png" width="320" alt="Status: ausgeschaltet"> |
+| Home | Apps | History |
+|:---:|:---:|:---:|
+| <img src="docs/home-en.png" width="260" alt="Home screen"> | <img src="docs/apps-en.png" width="260" alt="App picker"> | <img src="docs/history-en.png" width="260" alt="History"> |
 
-## ⚙️ Wie es funktioniert
+## ⚙️ How it works
 
-Der Schalter liegt als nicht-öffentlicher Key in den System-Settings – **per adb-Diff auf einem Pixel 10 Pro ermittelt**, nicht geraten:
+The switch is a non-public key in the system settings – **found with an adb diff on a Pixel 10 Pro**, not guessed:
 
-| Einstellung | Namespace | Key | Werte |
+| Setting | Namespace | Key | Values |
 |---|---|---|---|
-| Augenkomfort-Modus | `system` | `cv_enabled` | `1` = an, `0` = aus |
-| Dynamisch (Adaptiv) | `system` | `cv_dynamic_enabled` | wird **nicht** angefasst |
-| Intensität | `system` | `cv_preferred_intensity` | wird **nicht** angefasst |
+| Comfort View | `system` | `cv_enabled` | `1` = on, `0` = off |
+| Dynamic (adaptive) | `system` | `cv_dynamic_enabled` | **not** touched |
+| Intensity | `system` | `cv_preferred_intensity` | **not** touched |
 
-Drei Bausteine:
+Three building blocks:
 
-1. **AccessibilityService** – lauscht auf `TYPE_WINDOW_STATE_CHANGED` und erkennt, wann eine Ziel-App (konfigurierbar, Default: Google Kamera + Google Fotos) in den Vordergrund kommt oder verschwindet.
-2. **SettingWriter** – versucht zuerst den `ContentResolver`; da `cv_enabled` ein `@hide`-Key ist, den Fremd-Apps weder lesen noch schreiben dürfen (auch nicht mit `WRITE_SECURE_SETTINGS`!), greift automatisch der Fallback …
-3. **Shizuku** – führt `settings get/put system cv_enabled …` mit ADB-Shell-Rechten aus. **Kein Root nötig.** Alle Shell-Aufrufe laufen auf einem seriellen Hintergrund-Thread.
+1. **AccessibilityService** – listens for `TYPE_WINDOW_STATE_CHANGED` and detects when one of the selected apps comes to the foreground or leaves it.
+2. **SettingWriter** – tries the `ContentResolver` first. Because `cv_enabled` is a `@hide` key that other apps may neither read nor write (not even with `WRITE_SECURE_SETTINGS`), it falls back automatically to …
+3. **Shizuku** – runs `settings get/put system cv_enabled …` with ADB shell rights. **No root required.** All calls run on one serial background thread.
 
-## 🎛️ Schnelleinstellungs-Kachel
+The automation is deliberately cautious:
 
-Die Kachel **„Augenkomfort"** schaltet den Filter von Hand um und zeigt den Live-Zustand
-(hell = an, dunkel = aus). Hinzufügen entweder in der App unter *3. Schnelleinstellungs-Kachel*
-(Android 13+) oder direkt in den Schnelleinstellungen über das Stift-Symbol.
+- If the value **can’t be read** (Shizuku isn’t running), it does not pause at all – a guessed value would be “restored” wrongly later.
+- If the filter **was already off**, nothing is written.
+- If **restoring fails**, the value stays remembered and the next app switch tries again.
 
-Sie greift auf denselben Key zu wie die Automatik und läuft über dieselbe serielle
-Warteschlange – beide können sich also nicht überholen. Schaltest du **während** eine
-Ziel-App vorn ist von Hand um, gilt deine Entscheidung auch nach dem Verlassen der App:
-der gemerkte Wert wird mitgezogen, statt später still überschrieben zu werden.
+## 🖥️ Display size and font size
 
-Ohne laufendes Shizuku ist die Kachel *nicht verfügbar* (ausgegraut) – ohne Shizuku
-lässt sich `cv_enabled` weder lesen noch schreiben, ein klickbarer Schalter wäre dann
-nur irreführend.
+Both sliders write when you let go. Display size uses `wm density` through Shizuku, font size uses the public key `system/font_scale`. The ranges are limited on purpose (320–600 dp, 0.85–2.00) so the device always stays usable.
 
-## 🚀 Einrichtung
+Emergency reset over adb:
 
-Voraussetzungen: Pixel mit Android 17, [Shizuku](https://shizuku.rikka.app/) installiert und gestartet.
+```bash
+adb shell wm density reset
+adb shell settings put system font_scale 1.0
+```
 
-1. **App installieren**: [neuestes APK aus den Releases](https://github.com/WEITERFUNKEN-Thomas/pixelcomfort/releases/latest) laden (oder selbst bauen, siehe unten) und öffnen
-2. **„Shizuku-Freigabe anfragen"** → im Shizuku-Dialog *Immer zulassen*
-3. **„WRITE_SETTINGS + WRITE_SECURE_SETTINGS per Shizuku erteilen"** (einmalig)
-4. **Bedienungshilfe aktivieren**: Einstellungen → Bedienungshilfen → *PixelComfort Auto-Aus* einschalten
-5. Optional: **„Kachel zu den Schnelleinstellungen hinzufügen"** für das manuelle Umschalten
-6. Fertig! Mit den Test-Buttons **Comfort AN / AUS** kannst du das Umschalten sofort prüfen – die Status-Karte oben zeigt live, ob der Filter gerade an ist.
+## 🎛️ Quick Settings tile
 
-> ⚠️ **Nach jedem Neustart** muss Shizuku wieder laufen (bei kabellosem Debugging startet es via „Bei Systemstart starten" automatisch).
+The **“Comfort View”** tile switches the filter by hand and shows the live state. Add it in the app under *More → Add tile* (Android 13+) or in Quick Settings using the pencil.
 
-## 🔨 Bauen
+The tile, the main switch and the automation share one queue, so they can’t overtake each other. If you switch by hand **while** a selected app is in front, your choice also holds after you leave the app.
+
+Without Shizuku the tile is *unavailable* (greyed out).
+
+## 🚀 Setup
+
+Requirements: a Pixel with Android 17, [Shizuku](https://shizuku.rikka.app/) installed and started.
+
+1. **Install the app**: get the [latest APK from the releases](https://github.com/WEITERFUNKEN-Thomas/pixelcomfort/releases/latest) (or build it yourself, see below) and open it
+2. Under **Setup**, tap **Shizuku** → choose *Allow all the time* in the Shizuku dialog
+3. Tap **Accessibility service** → turn on *PixelComfort auto-off*
+4. Tap **Notifications** and allow them, so the app can warn you when Shizuku isn’t running
+5. Optional: **More → Apps** to pick other apps, **More → Add tile** for the tile
+
+Once everything is done, the setup group shrinks to a single line: *All set*.
+
+> ⚠️ Shizuku has to run again **after every restart** (with wireless debugging it can start automatically).
+
+## 🔨 Build
 
 ```bash
 # Debug
 ./gradlew :app:assembleDebug
 
-# Signiertes Release (benötigt keystore.properties + eigenen Keystore, siehe unten)
+# Signed release (needs keystore.properties and your own keystore, see below)
 ./gradlew :app:assembleRelease
+
+# Unit tests
+./gradlew :app:testDebugUnitTest
 ```
 
-Für Release-Builds eine `keystore.properties` im Projekt-Root anlegen (liegt in `.gitignore`):
+For release builds create a `keystore.properties` in the project root (it is in `.gitignore`):
 
 ```properties
-storeFile=mein-release.jks
+storeFile=my-release.jks
 storePassword=…
 keyAlias=…
 keyPassword=…
 ```
 
-Fehlt die Datei, wird das Release einfach unsigniert gebaut.
+If the file is missing, the release is simply built unsigned.
 
-**Stack:** Kotlin 2.4.10 · Jetpack Compose (Material 3, BOM 2026.08.00) · Shizuku-API 13.1.5 · AGP 9.3.1 · Gradle 9.7.1 · targetSdk 37
+**Stack:** Kotlin 2.4.10 · Jetpack Compose (Material 3, BOM 2026.08.00) · Shizuku API 13.1.5 · AGP 9.3.1 · Gradle 9.7.1 · targetSdk 37
 
 ## 🔍 Debugging
 
-Die App loggt jede Aktion unter dem Tag `PixelComfort`:
+The app logs every action under the tag `PixelComfort` (log lines are in German):
 
 ```bash
-adb logcat -s PixelComfort:*
-# z.B.:
-# Ziel-App 'com.google.android.GoogleCamera' -> system/cv_enabled AUS (gemerkt=1) via SHIZUKU, ok=true
+adb logcat -s 'PixelComfort:*'
+# e.g.:
+# Ziel-App 'com.google.android.GoogleCamera' -> system/cv_enabled AUS (gemerkt=1) ok=true via SHIZUKU: …
 ```
 
-Falls der Key auf deinem Gerät anders heißt – selbst finden per Diff:
+If the key has a different name on your device, find it yourself with a diff:
 
 ```bash
-adb shell settings list system > vorher.txt
-#  … Comfort-Filter in den Einstellungen umschalten …
-adb shell settings list system > nachher.txt
-diff vorher.txt nachher.txt
+adb shell settings list system > before.txt
+#  … toggle the comfort filter in Settings …
+adb shell settings list system > after.txt
+diff before.txt after.txt
 ```
 
-Namespace, Key und Werte lassen sich in der App unter **„Erweitert"** anpassen; auch die Ziel-Packages sind frei konfigurierbar.
+Namespace, key and values can be changed in the app under **More → Advanced**.
 
-## ⚠️ Einschränkungen
+## ⚠️ Limitations
 
-- **Shizuku muss laufen** – ohne aktiven Shizuku-Dienst kann der Key nicht geschrieben werden (er ist für Fremd-Apps gesperrt, der ContentResolver-Weg scheitert systembedingt).
-- **Advanced Protection Mode**: Android 17 deaktiviert damit Bedienungshilfen, die keine echten Barrierefreiheits-Tools sind. Die App erkennt und meldet das im Status.
-- Wird die **Bedienungshilfe manuell deaktiviert, während** Kamera/Fotos offen sind, bleibt der Filter aus (Kachel, Test-Button „Comfort AN" oder Systemeinstellung nutzen).
-- Im kompakten Kachel-Layout des Pixel zeigt Android **nur das Icon** – Label und Untertitel („An"/„Aus") erscheinen erst im Bearbeiten-Screen der Schnelleinstellungen.
-- Getestet auf **Pixel 10 Pro mit Android 17** – der `cv_*`-Key existiert vermutlich nur auf Pixel-Geräten mit dem Comfort-Filter-Feature (`com.android.pixeldisplayservice`).
+- **Shizuku has to run** – without it the key can’t be written (it is locked for other apps).
+- **Advanced Protection Mode**: Android 17 then disables accessibility services that aren’t real accessibility tools. The app detects this and says so under Setup.
+- If you **turn the accessibility service off while** a selected app is open, the filter stays off. Use the main switch, the tile or the system setting.
+- **Not every dp value is reachable**: Android stores the density in whole dpi, so above roughly 450 dp the display size moves in steps of 1–2 dp.
+- In the compact tile layout of the Pixel, Android shows **only the icon** – label and subtitle only appear in the edit screen of Quick Settings.
+- Tested on a **Pixel 10 Pro with Android 17** – the `cv_*` key probably only exists on Pixel devices with the comfort filter feature (`com.android.pixeldisplayservice`).
 
-## 📄 Rechtliches
+## 📄 Legal
 
-Privates Hobby-Projekt, ohne Gewähr. Kein offizielles Google-Produkt. „Pixel" ist eine Marke von Google LLC.
+Private hobby project, provided without warranty. Not an official Google product. “Pixel” is a trademark of Google LLC.
