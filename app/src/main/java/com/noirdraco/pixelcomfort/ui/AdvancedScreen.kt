@@ -1,5 +1,6 @@
 package com.noirdraco.pixelcomfort.ui
 
+import android.content.Context
 import android.content.Intent
 import android.content.res.Resources
 import android.provider.Settings
@@ -67,30 +68,7 @@ internal fun AdvancedScreen(refreshKey: Int, onRefresh: () -> Unit, onBack: () -
         }
     }
 
-    fun grantViaShizuku() {
-        val pkg = context.packageName
-        thread {
-            val msg = try {
-                if (!ShizukuShell.isReady()) {
-                    failureText(res, ShizukuShell.explain("Shizuku not ready"))
-                } else {
-                    val result = ShizukuShell.runShell(
-                        "pm grant $pkg android.permission.WRITE_SECURE_SETTINGS; " +
-                            "appops set $pkg WRITE_SETTINGS allow",
-                    )
-                    if (result.success) {
-                        res.getString(R.string.perms_granted)
-                    } else {
-                        res.getString(R.string.failed, result.err)
-                    }
-                }
-            } catch (t: Throwable) {
-                res.getString(R.string.error_generic, t.message.orEmpty())
-            }
-            say(msg)
-            onRefresh()
-        }
-    }
+    fun grant() = grantViaShizuku(context, res, ::say, onRefresh)
 
     SettingsScaffold(title = stringResource(R.string.advanced), onBack = onBack, snackbar = snackbar) { padding ->
         Column(
@@ -166,14 +144,14 @@ internal fun AdvancedScreen(refreshKey: Int, onRefresh: () -> Unit, onBack: () -
                     summary = permissionSummary(res, "WRITE_SETTINGS", s?.canWriteSystem),
                     icon = if (s?.canWriteSystem == true) R.drawable.ic_check_circle else R.drawable.ic_key,
                     iconTint = tint(s?.canWriteSystem),
-                    onClick = { grantViaShizuku() },
+                    onClick = { grant() },
                 )
                 SettingsRow(
                     title = stringResource(R.string.adv_write_secure),
                     summary = permissionSummary(res, "WRITE_SECURE_SETTINGS", s?.hasWriteSecure),
                     icon = if (s?.hasWriteSecure == true) R.drawable.ic_check_circle else R.drawable.ic_key,
                     iconTint = tint(s?.hasWriteSecure),
-                    onClick = { grantViaShizuku() },
+                    onClick = { grant() },
                 )
                 SettingsRow(
                     title = stringResource(R.string.adv_system_dialog),
@@ -212,3 +190,32 @@ private fun permissionSummary(res: Resources, name: String, granted: Boolean?): 
 @Composable
 private fun tint(granted: Boolean?) =
     if (granted == true) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+
+/**
+ * WRITE_SECURE_SETTINGS und den WRITE_SETTINGS-AppOp einmalig per Shizuku erteilen.
+ * Beide bleiben danach auch ohne Shizuku erhalten. Laeuft auf einem eigenen Thread.
+ */
+internal fun grantViaShizuku(context: Context, res: Resources, say: (String) -> Unit, onRefresh: () -> Unit) {
+    val pkg = context.packageName
+    thread {
+        val msg = try {
+            if (!ShizukuShell.isReady()) {
+                failureText(res, ShizukuShell.explain("Shizuku not ready"))
+            } else {
+                val result = ShizukuShell.runShell(
+                    "pm grant $pkg android.permission.WRITE_SECURE_SETTINGS; " +
+                        "appops set $pkg WRITE_SETTINGS allow",
+                )
+                if (result.success) {
+                    res.getString(R.string.perms_granted)
+                } else {
+                    res.getString(R.string.failed, result.err)
+                }
+            }
+        } catch (t: Throwable) {
+            res.getString(R.string.error_generic, t.message.orEmpty())
+        }
+        say(msg)
+        onRefresh()
+    }
+}

@@ -1,6 +1,7 @@
 package com.noirdraco.pixelcomfort
 
 import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
 
 /**
  * EIN gemeinsamer Worker-Thread fuer alle Zugriffe auf die Comfort-Einstellung.
@@ -25,4 +26,12 @@ object SettingsWorker {
     }
 
     fun submit(task: () -> Unit) = executor.execute(task)
+
+    /**
+     * Wie [submit], wartet aber bis zu [timeoutMs] auf das Ende - fuer Arbeit, die noch
+     * erledigt sein muss, bevor der Prozess enden kann (Abmelden der Bedienungshilfe).
+     */
+    fun submitAndWait(timeoutMs: Long, task: () -> Unit) {
+        runCatching { executor.submit(task).get(timeoutMs, TimeUnit.MILLISECONDS) }
+    }
 }

@@ -12,6 +12,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import com.noirdraco.pixelcomfort.ui.AdvancedScreen
 import com.noirdraco.pixelcomfort.ui.AppsScreen
+import com.noirdraco.pixelcomfort.ui.DnsScreen
 import com.noirdraco.pixelcomfort.ui.HistoryScreen
 import com.noirdraco.pixelcomfort.ui.HomeScreen
 import com.noirdraco.pixelcomfort.ui.theme.PixelComfortTheme
@@ -34,7 +35,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             PixelComfortTheme {
-                // Vier Seiten - dafuer braucht es keine Navigations-Bibliothek.
+                // Fuenf Seiten - dafuer braucht es keine Navigations-Bibliothek.
                 var screen by rememberSaveable { mutableStateOf(Screen.HOME) }
                 val onRefresh: () -> Unit = { refresh.intValue++ }
                 val toHome: () -> Unit = {
@@ -51,11 +52,18 @@ class MainActivity : ComponentActivity() {
                         onOpenApps = { screen = Screen.APPS },
                         onOpenAdvanced = { screen = Screen.ADVANCED },
                         onOpenHistory = { screen = Screen.HISTORY },
+                        onOpenDns = { screen = Screen.DNS },
                     )
 
                     Screen.HISTORY -> HistoryScreen(onBack = toHome)
 
                     Screen.APPS -> AppsScreen(onBack = toHome)
+
+                    Screen.DNS -> DnsScreen(
+                        refreshKey = refresh.intValue,
+                        onRefresh = onRefresh,
+                        onBack = toHome,
+                    )
 
                     Screen.ADVANCED -> AdvancedScreen(
                         refreshKey = refresh.intValue,
@@ -80,7 +88,7 @@ class MainActivity : ComponentActivity() {
         super.onDestroy()
     }
 
-    private enum class Screen { HOME, APPS, HISTORY, ADVANCED }
+    private enum class Screen { HOME, APPS, DNS, HISTORY, ADVANCED }
 
     companion object {
         const val SHIZUKU_REQUEST_CODE = 1001

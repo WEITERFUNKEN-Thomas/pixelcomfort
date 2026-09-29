@@ -42,6 +42,9 @@ object Prefs {
     private const val K_OFF = "value_off"
     private const val K_ON = "value_on"
     private const val K_PACKAGES = "packages"
+    private const val K_DNS_ENABLED = "dns_enabled"
+    private const val K_DNS_HOME_SSIDS = "dns_home_ssids"
+    private const val K_DNS_HOSTNAME = "dns_hostname"
     private const val K_SUPPRESSED = "suppressed"
     private const val K_SAVED_VALUE = "saved_value"
 
@@ -102,6 +105,19 @@ object Prefs {
     fun setPackages(c: Context, packages: Set<String>) {
         sp(c).edit { putString(K_PACKAGES, AppList.serialize(packages)) }
     }
+
+    // ---- Privates DNS (Konfiguration, wird mit gesichert) ----
+
+    fun getDnsEnabled(c: Context): Boolean = sp(c).getBoolean(K_DNS_ENABLED, false)
+    fun setDnsEnabled(c: Context, enabled: Boolean) = sp(c).edit { putBoolean(K_DNS_ENABLED, enabled) }
+
+    /** Kopie: das Set aus getStringSet darf nicht veraendert werden. */
+    fun getDnsHomeSsids(c: Context): Set<String> = sp(c).getStringSet(K_DNS_HOME_SSIDS, null)?.toSet().orEmpty()
+    fun setDnsHomeSsids(c: Context, ssids: Set<String>) = sp(c).edit { putStringSet(K_DNS_HOME_SSIDS, ssids) }
+
+    /** Gemerkter DNS-Name fuer unterwegs; leer = noch keiner. */
+    fun getDnsHostname(c: Context): String = sp(c).getString(K_DNS_HOSTNAME, "").orEmpty()
+    fun setDnsHostname(c: Context, hostname: String) = sp(c).edit { putString(K_DNS_HOSTNAME, hostname) }
 
     // ---- Laufzeit-Zustand ----
 

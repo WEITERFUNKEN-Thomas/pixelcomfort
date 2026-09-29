@@ -4,6 +4,8 @@ import android.content.Context
 import android.content.res.Resources
 import android.text.format.DateFormat
 import com.noirdraco.pixelcomfort.AppList
+import com.noirdraco.pixelcomfort.DnsAutomation
+import com.noirdraco.pixelcomfort.DnsStatus
 import com.noirdraco.pixelcomfort.History
 import com.noirdraco.pixelcomfort.R
 import com.noirdraco.pixelcomfort.ScaleMath
@@ -55,6 +57,8 @@ internal fun historyTitle(res: Resources, e: History.Entry): String {
             History.Kind.TILE -> R.string.history_tile
             History.Kind.WIDTH -> R.string.history_width
             History.Kind.FONT -> R.string.history_font
+            History.Kind.DNS_HOME -> R.string.history_dns_home
+            History.Kind.DNS_AWAY -> R.string.history_dns_away
         }
     } else {
         when (e.kind) {
@@ -65,6 +69,8 @@ internal fun historyTitle(res: Resources, e: History.Entry): String {
             History.Kind.TILE -> R.string.history_tile_failed
             History.Kind.WIDTH -> R.string.history_width_failed
             History.Kind.FONT -> R.string.history_font_failed
+            History.Kind.DNS_HOME -> R.string.history_dns_home_failed
+            History.Kind.DNS_AWAY -> R.string.history_dns_away_failed
         }
     }
     // Texte ohne Platzhalter ignorieren das Argument.
@@ -89,5 +95,22 @@ private fun valueText(res: Resources, kind: History.Kind, value: String): String
         ScaleMath.parseFontScale(value)?.let(::fontLabel) ?: value
     } else {
         value
+    }
+}
+
+/** Was gerade gilt: "Zuhause (Neuland 2) · privates DNS aus", "Unterwegs · dns.example.org", ... */
+internal fun dnsStateText(res: Resources, s: DnsStatus): String {
+    val home = s.homeSsid
+    return when (s.mode) {
+        DnsAutomation.MODE_OFF ->
+            if (home != null) res.getString(R.string.dns_state_home, home) else res.getString(R.string.dns_state_off)
+
+        DnsAutomation.MODE_HOSTNAME -> {
+            val name = s.specifier.orEmpty()
+            if (s.enabled && home == null) res.getString(R.string.dns_state_away, name) else res.getString(R.string.dns_state_on, name)
+        }
+
+        // null = Android-Standard "automatisch"
+        else -> res.getString(R.string.dns_state_auto)
     }
 }

@@ -36,6 +36,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.noirdraco.pixelcomfort.ComfortControl
 import com.noirdraco.pixelcomfort.ComfortTileService
+import com.noirdraco.pixelcomfort.DnsStatus
 import com.noirdraco.pixelcomfort.History
 import com.noirdraco.pixelcomfort.MainActivity
 import com.noirdraco.pixelcomfort.R
@@ -57,6 +58,7 @@ internal fun HomeScreen(
     onOpenApps: () -> Unit,
     onOpenAdvanced: () -> Unit,
     onOpenHistory: () -> Unit,
+    onOpenDns: () -> Unit,
 ) {
     val context = LocalContext.current
     val res = LocalResources.current
@@ -128,6 +130,18 @@ internal fun HomeScreen(
                     icon = R.drawable.ic_apps,
                     onClick = onOpenApps,
                 )
+                val dns = s?.dns
+                SettingsRow(
+                    title = stringResource(R.string.dns_title),
+                    summary = dns?.let { dnsSummary(res, it) },
+                    icon = if (dns != null && dns.enabled && !dns.setupComplete) R.drawable.ic_warning else R.drawable.ic_dns,
+                    iconTint = if (dns != null && dns.enabled && !dns.setupComplete) {
+                        MaterialTheme.colorScheme.error
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    },
+                    onClick = onOpenDns,
+                )
                 SettingsRow(
                     title = stringResource(R.string.history),
                     summary = s?.let { lastEntrySummary(context, res, it.lastEntry) },
@@ -162,6 +176,13 @@ private fun comfortSummary(res: Resources, s: SetupStatus?): String = when {
         res.getString(R.string.comfort_on_paused_in, appsSummary(res, s.targetLabels))
 
     else -> res.getString(R.string.value_on)
+}
+
+private fun dnsSummary(res: Resources, s: DnsStatus): String = when {
+    !s.supported -> res.getString(R.string.dns_unsupported)
+    !s.enabled -> res.getString(R.string.dns_summary_off)
+    !s.setupComplete -> res.getString(R.string.dns_summary_setup)
+    else -> dnsStateText(res, s)
 }
 
 /**

@@ -114,6 +114,7 @@ private fun icon(kind: History.Kind): Int = when (kind) {
     History.Kind.SWITCH -> R.drawable.ic_qs_comfort
     History.Kind.TILE -> R.drawable.ic_tile
     History.Kind.WIDTH, History.Kind.FONT -> R.drawable.ic_tune
+    History.Kind.DNS_HOME, History.Kind.DNS_AWAY -> R.drawable.ic_dns
 }
 
 /** Erste und letzte Zeile bekommen die grossen Aussen-Ecken der Gruppe. */

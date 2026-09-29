@@ -17,6 +17,16 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <!--
+      Privates DNS je nach WLAN: Netzwechsel beobachten und den WLAN-Namen lesen.
+      Den Namen gibt Android nur mit Standort-Berechtigung heraus; der Standort selbst
+      wird nie abgefragt.
+    -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+
+    <!--
       App-Auswahl: macht alle startbaren Apps sichtbar (Name + Symbol), ohne die
       Berechtigung QUERY_ALL_PACKAGES zu verlangen.
     -->

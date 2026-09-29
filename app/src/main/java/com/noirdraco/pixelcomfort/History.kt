@@ -2,7 +2,7 @@ package com.noirdraco.pixelcomfort
 
 /**
  * Reine Logik des Verlaufs (Eintraege, Format), ohne Android-Abhaengigkeit. Die Texte
- * entstehen erst bei der Anzeige (ui/HistoryText.kt), damit der Verlauf der Sprache folgt.
+ * entstehen erst bei der Anzeige (ui/Texts.kt), damit der Verlauf der Sprache folgt.
  * Gespeichert wird ueber den [HistoryStore].
  */
 object History {
@@ -26,10 +26,16 @@ object History {
         TILE,
         WIDTH,
         FONT,
+
+        /** Heim-WLAN: privates DNS ausgeschaltet (subject = WLAN-Name). */
+        DNS_HOME,
+
+        /** Unterwegs: privates DNS eingetragen (subject = DNS-Name). */
+        DNS_AWAY,
     }
 
     /**
-     * @param subject App, um die es ging (nur PAUSE/SKIP)
+     * @param subject App, um die es ging (PAUSE/SKIP), bzw. WLAN-/DNS-Name (DNS_HOME/DNS_AWAY)
      * @param from/to sprachneutral: [ON], [OFF], [DEFAULT], "438 dp", "1.15"
      * @param message Grund bei einem Fehlschlag: ein Kuerzel aus [Reason] oder Technik-Text
      */

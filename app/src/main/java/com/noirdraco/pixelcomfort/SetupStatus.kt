@@ -21,6 +21,7 @@ data class SetupStatus(
     /** Darf die App die Shizuku-Warnung zeigen? */
     val notificationsAllowed: Boolean,
     val lastEntry: History.Entry?,
+    val dns: DnsStatus,
 ) {
     val shizukuReady: Boolean get() = shizukuBinder && shizukuPermission
 
@@ -48,6 +49,7 @@ data class SetupStatus(
                 },
                 notificationsAllowed = ShizukuWarning.allowed(context),
                 lastEntry = HistoryStore.load(context).firstOrNull(),
+                dns = DnsStatus.read(context),
             )
         }
 

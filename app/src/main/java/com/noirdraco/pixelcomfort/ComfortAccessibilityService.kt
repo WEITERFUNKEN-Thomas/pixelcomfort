@@ -3,6 +3,7 @@ package com.noirdraco.pixelcomfort
 import android.accessibilityservice.AccessibilityService
 import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
 import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
@@ -50,10 +51,27 @@ class ComfortAccessibilityService : AccessibilityService() {
         runCatching { Shizuku.addBinderReceivedListenerSticky(shizukuConnected) }
         main.removeCallbacks(startupCheck)
         main.postDelayed(startupCheck, STARTUP_CHECK_DELAY_MS)
+        // Das System meldet sofort das aktuelle Netz; die DNS-Automatik stimmt sich
+        // dann selbst ab (Schreiben beim Verbinden ist hier richtig, s. DnsAutomation).
+        DnsWatcher.start(this)
+    }
+
+    /**
+     * Die Bedienungshilfe wird abgeschaltet: privates DNS darf dann nicht ausgeschaltet
+     * zurueckbleiben, sonst waere es unterwegs aus, ohne dass jemand es wieder eintraegt.
+     */
+    override fun onUnbind(intent: Intent?): Boolean {
+        DnsWatcher.stop()
+        if (Prefs.getDnsEnabled(this)) {
+            val ctx = applicationContext
+            SettingsWorker.submitAndWait(UNBIND_TIMEOUT_MS) { PrivateDns.automation(ctx).ensureAway() }
+        }
+        return super.onUnbind(intent)
     }
 
     override fun onDestroy() {
         main.removeCallbacks(startupCheck)
+        DnsWatcher.stop()
         runCatching { Shizuku.removeBinderReceivedListener(shizukuConnected) }
         super.onDestroy()
     }
@@ -160,6 +178,9 @@ class ComfortAccessibilityService : AccessibilityService() {
          * Geraete-Neustart braucht ein automatisch startendes Shizuku einen Moment.
          */
         private const val STARTUP_CHECK_DELAY_MS = 90_000L
+
+        /** So lange darf das Eintragen von privatem DNS beim Abmelden hoechstens dauern. */
+        private const val UNBIND_TIMEOUT_MS = 3_000L
 
         private val IGNORED_PACKAGES = setOf(
             "com.android.systemui",

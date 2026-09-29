@@ -32,6 +32,7 @@ Dabei wird **immer der echte System-Zustand respektiert**: Der aktuelle Wert wir
 - **App-Auswahl** – Apps aus einer Liste mit Symbolen und Suche wählen
 - **Hauptschalter und Schnelleinstellungs-Kachel** – Augenkomfort von Hand schalten
 - **Anzeige** – Regler für Anzeigegröße (kleinste Breite in dp) und Schriftgröße, je mit *Standard*-Button
+- **Privates DNS je nach WLAN** – im Heim-WLAN aus (damit z. B. AdGuard Home filtert), überall sonst an
 - **Verlauf** – zeigt, wann pausiert, wiederhergestellt oder von Hand geschaltet wurde und was schiefging
 - **Shizuku-Warnung** – eine Benachrichtigung meldet, wenn Shizuku nicht läuft
 - **Material You** – folgt den Systemfarben, hell und dunkel
@@ -65,6 +66,38 @@ Die Automatik ist bewusst vorsichtig:
 - War der Filter **schon aus**, wird nichts geschrieben.
 - **Scheitert das Wiederherstellen**, bleibt der Wert gemerkt und der nächste App-Wechsel versucht es erneut.
 
+## 🌐 Privates DNS je nach WLAN
+
+Hat dein Heimnetz einen eigenen DNS-Filter (z. B. **AdGuard Home** oder Pi-hole), umgeht ein am Handy eingetragenes privates DNS ihn zu Hause. PixelComfort schaltet das für dich:
+
+```
+Heim-WLAN        ──▶  privates DNS aus  (das DNS deines Heimnetzes greift)
+überall sonst    ──▶  privates DNS an   (z. B. dns.adguard-dns.com)
+```
+
+| Einstellung | Namespace | Key | Werte |
+|---|---|---|---|
+| Modus privates DNS | `global` | `private_dns_mode` | `off` zu Hause, sonst `hostname` |
+| Name privates DNS | `global` | `private_dns_specifier` | dein DNS-Name |
+
+- **Stromsparend**: kein Abfragen, kein Timer. Android meldet jeden Wechsel des aktiven Netzes von selbst (`registerDefaultNetworkCallback`), die App reagiert nur.
+- **Zuhause nur, wenn gesichert**: ein WLAN aus deiner Liste, das mit Passwort geschützt ist (WPA2/WPA3/Enterprise). Offene und OWE-Netze zählen nie – so eins könnte jeder mit gleichem Namen aufmachen.
+- **Im Zweifel bleibt privates DNS an**: kein Netz, fremdes WLAN, WLAN-Name nicht lesbar (Standort aus) – alles gilt als unterwegs.
+- **Nichts bleibt ausgeschaltet zurück**: Schaltest du die Automatik oder die Bedienungshilfe ab, wird privates DNS sofort wieder eingetragen.
+- **Kein Shizuku zum Schalten nötig**: Die Keys sind öffentlich; mit `WRITE_SECURE_SETTINGS` (einmalig per Shizuku erteilt) schreibt die App sie direkt.
+- DNS-Namen in den Android-Einstellungen geändert? Die App übernimmt ihn, sobald du wieder zu Hause bist.
+
+Einrichten unter **Mehr → Privates DNS**: Standort-Berechtigung erlauben (*Bei Nutzung der App* reicht – Android gibt den WLAN-Namen nur damit heraus, der Standort selbst wird nie benutzt), zu Hause auf *Aktuelles WLAN hinzufügen* tippen, DNS-Namen prüfen, *Automatik* einschalten. Ab Android 12.
+
+> 💡 Verteilt dein Router neben AdGuard Home noch einen zweiten DNS-Server (z. B. `9.9.9.9`), kann das Handy zu Hause trotzdem ab und zu am Filter vorbei fragen. Im Router nur AdGuard Home als DNS eintragen.
+
+Notfall-Reset per adb:
+
+```bash
+adb shell settings put global private_dns_mode hostname
+adb shell settings put global private_dns_specifier dns.adguard-dns.com
+```
+
 ## 🖥️ Anzeigegröße und Schriftgröße
 
 Beide Regler schreiben beim Loslassen. Die Anzeigegröße läuft über `wm density` per Shizuku, die Schriftgröße über den öffentlichen Key `system/font_scale`. Die Bereiche sind bewusst begrenzt (320–600 dp, 0,85–2,00), damit das Gerät immer bedienbar bleibt.
@@ -92,7 +125,7 @@ Voraussetzungen: Pixel mit Android 17, [Shizuku](https://shizuku.rikka.app/) ins
 2. Unter **Einrichtung** auf **Shizuku** tippen → im Shizuku-Dialog *Immer zulassen*
 3. Auf **Bedienungshilfe** tippen → *PixelComfort Auto-Aus* einschalten
 4. Auf **Benachrichtigungen** tippen und erlauben, damit die App warnt, wenn Shizuku nicht läuft
-5. Optional: **Mehr → Apps** für andere Apps, **Mehr → Kachel hinzufügen** für die Kachel
+5. Optional: **Mehr → Apps** für andere Apps, **Mehr → Privates DNS** für privates DNS je nach WLAN, **Mehr → Kachel hinzufügen** für die Kachel
 
 Ist alles erledigt, schrumpft die Einrichtung auf eine Zeile: *Alles eingerichtet*.
 
@@ -150,6 +183,7 @@ Namespace, Key und Werte lassen sich in der App unter **Mehr → Erweitert** anp
 - **Shizuku muss laufen** – ohne Shizuku kann der Key nicht geschrieben werden (er ist für Fremd-Apps gesperrt).
 - **Advanced Protection Mode**: Android 17 deaktiviert damit Bedienungshilfen, die keine echten Barrierefreiheits-Tools sind. Die App erkennt das und meldet es unter Einrichtung.
 - Wird die **Bedienungshilfe deaktiviert, während** eine gewählte App offen ist, bleibt der Filter aus. Hauptschalter, Kachel oder Systemeinstellung nutzen.
+- **Privates DNS je nach WLAN** braucht die Standort-Berechtigung und eingeschalteten Standort – sonst ist der WLAN-Name nicht lesbar und privates DNS bleibt einfach auch zu Hause an. Geschaltet wird nur, solange die Bedienungshilfe aktiv ist.
 - **Nicht jeder dp-Wert ist erreichbar**: Android speichert die Dichte in ganzen dpi, oberhalb von etwa 450 dp springt die Anzeigegröße deshalb in Schritten von 1–2 dp.
 - Im kompakten Kachel-Layout des Pixel zeigt Android **nur das Icon** – Label und Untertitel erscheinen erst im Bearbeiten-Screen der Schnelleinstellungen.
 - Getestet auf **Pixel 10 Pro mit Android 17** – der `cv_*`-Key existiert vermutlich nur auf Pixel-Geräten mit dem Comfort-Filter-Feature (`com.android.pixeldisplayservice`).
