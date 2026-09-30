@@ -1,0 +1,26 @@
+Der Comfort-Filter auf Google Pixel („Augenkomfort-Modus“, Einstellungen → Display & Touch → Komfort-Filter) gibt dem Display eine wärmere, pastellige Optik. Das schont die Augen, ist aber schlecht beim Fotografieren: Sucherbild und Fotos-Vorschau wirken farbstichig. Anders als beim Nachtlicht bietet Google dafür keinen Zeitplan und keine API.
+
+PixelComfort schaltet den Augenkomfort aus, sobald Kamera oder Google Fotos geöffnet werden, und stellt beim Verlassen exakt den vorherigen Zustand wieder her. War der Filter vorher aus, bleibt er aus. Andere Einstellungen (Dynamisch, Intensität) werden nicht angetastet.
+
+<b>Funktionen</b>
+<ul>
+<li>Automatik: pausiert den Augenkomfort in den gewählten Apps und stellt ihn danach wieder her</li>
+<li>App-Auswahl mit Symbolen und Suche</li>
+<li>Hauptschalter und Schnelleinstellungs-Kachel zum Schalten von Hand</li>
+<li>Regler für Anzeigegröße und Schriftgröße, je mit Standard-Button</li>
+<li>Privates DNS je nach WLAN: im Heim-WLAN aus (damit z. B. AdGuard Home filtert), überall sonst an</li>
+<li>Verlauf: wann pausiert, wiederhergestellt oder geschaltet wurde und was schiefging</li>
+<li>Benachrichtigung, wenn Shizuku nicht läuft</li>
+<li>Material You, hell und dunkel, Deutsch und Englisch</li>
+</ul>
+
+<b>Voraussetzungen</b>
+<ul>
+<li>Ein Google Pixel mit Komfort-Filter (Android 17, ab Pixel Drop März 2026)</li>
+<li><a href="https://shizuku.rikka.app/">Shizuku</a> installiert und gestartet – die Augenkomfort-Einstellung ist für normale Apps gesperrt</li>
+<li>Die Bedienungshilfe der App ist eingeschaltet. Sie erfährt nur, welche App im Vordergrund ist, und liest keine Bildschirminhalte.</li>
+</ul>
+
+Die Standort-Berechtigung braucht nur „Privates DNS je nach WLAN“, weil Android den WLAN-Namen nur Apps mit Standortzugriff verrät. Es verlassen keine Daten das Gerät; die App hat keine Internet-Berechtigung.
+
+Nutzung auf eigene Gefahr: Die App ändert Systemeinstellungen. Kein offizielles Google-Produkt. „Pixel“ ist eine Marke von Google LLC.

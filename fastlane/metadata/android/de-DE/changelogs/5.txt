@@ -1,0 +1,3 @@
+• Erste Veröffentlichung auf F-Droid / IzzyOnDroid
+• Quelloffen unter der MIT-Lizenz
+• Build ohne Googles verschlüsselten Abhängigkeits-Block (reproduzierbare Builds)

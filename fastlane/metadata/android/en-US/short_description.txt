@@ -1,0 +1,1 @@
+Turns Comfort View off in the camera and Photos, then restores it

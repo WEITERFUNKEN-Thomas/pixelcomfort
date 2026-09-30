@@ -23,8 +23,8 @@ android {
         applicationId = "com.noirdraco.pixelcomfort"
         minSdk = 26
         targetSdk = 37
-        versionCode = 4
-        versionName = "1.3"
+        versionCode = 5
+        versionName = "1.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -56,6 +56,12 @@ android {
     }
     buildFeatures {
         compose = true
+    }
+    // Kein verschluesselter Abhaengigkeits-Block von Google in APK/AAB: F-Droid und
+    // IzzyOnDroid lehnen ihn ab, und er stoert reproduzierbare Builds.
+    dependenciesInfo {
+        includeInApk = false
+        includeInBundle = false
     }
 }
 
