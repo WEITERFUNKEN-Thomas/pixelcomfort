@@ -190,4 +190,8 @@ Namespace, Key und Werte lassen sich in der App unter **Mehr → Erweitert** anp
 
 ## 📄 Rechtliches
 
+**Nutzung auf eigene Gefahr.** Die App ändert Systemeinstellungen über Shizuku und `WRITE_SECURE_SETTINGS`. Falsche Werte unter *Erweitert* oder eine extreme Anzeigegröße können das Gerät schwer bedienbar machen – `adb shell wm density reset` und `adb shell settings put system font_scale 1.0` machen die Anzeige-Änderungen rückgängig.
+
 Privates Hobby-Projekt, ohne Gewähr. Kein offizielles Google-Produkt. „Pixel" ist eine Marke von Google LLC.
+
+Lizenz: [MIT](LICENSE).

@@ -98,7 +98,7 @@ private fun valueText(res: Resources, kind: History.Kind, value: String): String
     }
 }
 
-/** Was gerade gilt: "Zuhause (Neuland 2) · privates DNS aus", "Unterwegs · dns.example.org", ... */
+/** Was gerade gilt: "Zuhause (Home WiFi) · privates DNS aus", "Unterwegs · dns.example.org", ... */
 internal fun dnsStateText(res: Resources, s: DnsStatus): String {
     val home = s.homeSsid
     return when (s.mode) {

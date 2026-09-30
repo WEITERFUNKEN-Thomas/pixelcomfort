@@ -190,4 +190,8 @@ Namespace, key and values can be changed in the app under **More → Advanced**.
 
 ## 📄 Legal
 
+**Use at your own risk.** The app changes system settings via Shizuku and `WRITE_SECURE_SETTINGS`. Wrong values under *Advanced* or an extreme display size can make the device hard to use – `adb shell wm density reset` and `adb shell settings put system font_scale 1.0` undo the display changes.
+
 Private hobby project, provided without warranty. Not an official Google product. “Pixel” is a trademark of Google LLC.
+
+Licensed under the [MIT License](LICENSE).

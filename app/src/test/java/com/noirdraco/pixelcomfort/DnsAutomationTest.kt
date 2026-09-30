@@ -44,7 +44,7 @@ class DnsAutomationTest {
     }
 
     private companion object {
-        const val HOME = "Neuland 2"
+        const val HOME = "Home WiFi"
         const val NAME = "dns.adguard-dns.com"
         val home = Network(isWifi = true, ssid = HOME, security = Security.SECURED)
         val mobile = Network(isWifi = false, ssid = null, security = Security.UNKNOWN)
@@ -219,7 +219,7 @@ class DnsAutomationTest {
 
     @Test
     fun `WLAN-Name wird von Anfuehrungszeichen befreit`() {
-        assertEquals(HOME, DnsAutomation.cleanSsid("\"Neuland 2\""))
+        assertEquals(HOME, DnsAutomation.cleanSsid("\"Home WiFi\""))
         assertEquals(HOME, DnsAutomation.cleanSsid(HOME))
         assertNull(DnsAutomation.cleanSsid("<unknown ssid>"))
         assertNull(DnsAutomation.cleanSsid(""))
