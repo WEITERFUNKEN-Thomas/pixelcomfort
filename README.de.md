@@ -184,6 +184,7 @@ Namespace, Key und Werte lassen sich in der App unter **Mehr → Erweitert** anp
 - **Advanced Protection Mode**: Android 17 deaktiviert damit Bedienungshilfen, die keine echten Barrierefreiheits-Tools sind. Die App erkennt das und meldet es unter Einrichtung.
 - Wird die **Bedienungshilfe deaktiviert, während** eine gewählte App offen ist, bleibt der Filter aus. Hauptschalter, Kachel oder Systemeinstellung nutzen.
 - **Privates DNS je nach WLAN** braucht die Standort-Berechtigung und eingeschalteten Standort – sonst ist der WLAN-Name nicht lesbar und privates DNS bleibt einfach auch zu Hause an. Geschaltet wird nur, solange die Bedienungshilfe aktiv ist.
+- **Vor dem Deinstallieren unterwegs sein** (oder die DNS-Automatik ausschalten): Wird die App im Heim-WLAN entfernt, bleibt privates DNS aus – auch später unterwegs. Android gibt einer App beim Deinstallieren keine Gelegenheit mehr, es wieder einzutragen. Dann von Hand unter *Einstellungen → Netzwerk & Internet → Privates DNS* einschalten.
 - **Nicht jeder dp-Wert ist erreichbar**: Android speichert die Dichte in ganzen dpi, oberhalb von etwa 450 dp springt die Anzeigegröße deshalb in Schritten von 1–2 dp.
 - Im kompakten Kachel-Layout des Pixel zeigt Android **nur das Icon** – Label und Untertitel erscheinen erst im Bearbeiten-Screen der Schnelleinstellungen.
 - Getestet auf **Pixel 10 Pro mit Android 17** – der `cv_*`-Key existiert vermutlich nur auf Pixel-Geräten mit dem Comfort-Filter-Feature (`com.android.pixeldisplayservice`).

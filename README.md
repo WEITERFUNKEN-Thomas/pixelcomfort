@@ -184,6 +184,7 @@ Namespace, key and values can be changed in the app under **More → Advanced**.
 - **Advanced Protection Mode**: Android 17 then disables accessibility services that aren’t real accessibility tools. The app detects this and says so under Setup.
 - If you **turn the accessibility service off while** a selected app is open, the filter stays off. Use the main switch, the tile or the system setting.
 - **Private DNS by Wi‑Fi** needs the location permission and location turned on – otherwise the Wi‑Fi name can’t be read and private DNS simply stays on at home too. It only switches while the accessibility service is on.
+- **Uninstall while away** (or turn the DNS automation off first): if the app is removed on your home Wi‑Fi, private DNS stays off – also later when you are away. Android gives an app no chance to enter it again when it is uninstalled. Turn it on by hand under *Settings → Network & internet → Private DNS*.
 - **Not every dp value is reachable**: Android stores the density in whole dpi, so above roughly 450 dp the display size moves in steps of 1–2 dp.
 - In the compact tile layout of the Pixel, Android shows **only the icon** – label and subtitle only appear in the edit screen of Quick Settings.
 - Tested on a **Pixel 10 Pro with Android 17** – the `cv_*` key probably only exists on Pixel devices with the comfort filter feature (`com.android.pixeldisplayservice`).

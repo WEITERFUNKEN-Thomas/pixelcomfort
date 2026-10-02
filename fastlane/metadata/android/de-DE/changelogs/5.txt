@@ -1,3 +1,5 @@
 • Erste Veröffentlichung auf F-Droid / IzzyOnDroid
 • Quelloffen unter der MIT-Lizenz
 • Build ohne Googles verschlüsselten Abhängigkeits-Block (reproduzierbare Builds)
+• Rechte-Erteilung unter „Erweitert“ meldet Fehler jetzt zuverlässig
+• Robuster: ein Fehler im Hintergrund beendet die App nicht mehr

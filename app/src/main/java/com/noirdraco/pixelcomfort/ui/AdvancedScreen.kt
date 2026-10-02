@@ -1,7 +1,9 @@
 package com.noirdraco.pixelcomfort.ui
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.content.res.Resources
 import android.provider.Settings
 import androidx.compose.foundation.layout.Arrangement
@@ -194,6 +196,10 @@ private fun tint(granted: Boolean?) =
 /**
  * WRITE_SECURE_SETTINGS und den WRITE_SETTINGS-AppOp einmalig per Shizuku erteilen.
  * Beide bleiben danach auch ohne Shizuku erhalten. Laeuft auf einem eigenen Thread.
+ *
+ * Zwei getrennte Aufrufe statt einer Shell-Zeile: sonst zaehlte nur der Exit-Code des
+ * letzten Kommandos, ein gescheitertes `pm grant` fiele nicht auf. Erfolg wird zum
+ * Schluss am echten Rechte-Stand geprueft.
  */
 internal fun grantViaShizuku(context: Context, res: Resources, say: (String) -> Unit, onRefresh: () -> Unit) {
     val pkg = context.packageName
@@ -202,14 +208,16 @@ internal fun grantViaShizuku(context: Context, res: Resources, say: (String) -> 
             if (!ShizukuShell.isReady()) {
                 failureText(res, ShizukuShell.explain("Shizuku not ready"))
             } else {
-                val result = ShizukuShell.runShell(
-                    "pm grant $pkg android.permission.WRITE_SECURE_SETTINGS; " +
-                        "appops set $pkg WRITE_SETTINGS allow",
-                )
-                if (result.success) {
-                    res.getString(R.string.perms_granted)
-                } else {
-                    res.getString(R.string.failed, result.err)
+                val errors = listOf(
+                    ShizukuShell.run("pm", "grant", pkg, Manifest.permission.WRITE_SECURE_SETTINGS),
+                    ShizukuShell.run("appops", "set", pkg, "WRITE_SETTINGS", "allow"),
+                ).filterNot { it.success }.map { it.err.ifEmpty { "exit=${it.exitCode}" } }
+                val granted = context.checkSelfPermission(Manifest.permission.WRITE_SECURE_SETTINGS) ==
+                    PackageManager.PERMISSION_GRANTED && Settings.System.canWrite(context)
+                when {
+                    errors.isNotEmpty() -> res.getString(R.string.failed, errors.joinToString("; "))
+                    !granted -> res.getString(R.string.failed, "permissions not granted after pm grant/appops set")
+                    else -> res.getString(R.string.perms_granted)
                 }
             }
         } catch (t: Throwable) {

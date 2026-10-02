@@ -1,3 +1,5 @@
 • First release on F-Droid / IzzyOnDroid
 • Open source under the MIT License
 • Build without Google's encrypted dependency block (reproducible builds)
+• Granting permissions under “Advanced” now reliably reports failures
+• More robust: an error in the background no longer stops the app

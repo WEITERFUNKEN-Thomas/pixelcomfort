@@ -1,5 +1,6 @@
 package com.noirdraco.pixelcomfort
 
+import android.util.Log
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
@@ -25,7 +26,25 @@ object SettingsWorker {
         Thread(runnable, "pixelcomfort-settings").apply { isDaemon = true }
     }
 
-    fun submit(task: () -> Unit) = executor.execute(task)
+    /**
+     * Wohin eine Ausnahme aus einer Aufgabe geht. Im Test austauschbar (android.util.Log
+     * gibt es dort nicht).
+     */
+    @Volatile
+    internal var onError: (Throwable) -> Unit = { Log.e(ComfortAccessibilityService.TAG, "Fehler im Settings-Worker", it) }
+
+    /**
+     * Eine Ausnahme wird gefangen und geloggt: Liefe sie bis zum Thread durch, beendete
+     * Android den ganzen Prozess - mit ihm die Bedienungshilfe, die zu Hause privates DNS
+     * ausgeschaltet hat und es unterwegs erst nach dem Neustart des Dienstes wieder eintruege.
+     */
+    fun submit(task: () -> Unit) = executor.execute {
+        try {
+            task()
+        } catch (t: Throwable) {
+            runCatching { onError(t) }
+        }
+    }
 
     /**
      * Wie [submit], wartet aber bis zu [timeoutMs] auf das Ende - fuer Arbeit, die noch

@@ -101,7 +101,4 @@ object ShizukuShell {
         readers.forEach { it.join(TIMEOUT_MS) }
         return ShellResult(process.exitValue(), out.toString().trim(), err.toString().trim())
     }
-
-    /** Nur fuer feste, im Code stehende Kommandos - niemals mit Nutzereingaben. */
-    fun runShell(command: String): ShellResult = run("sh", "-c", command)
 }
