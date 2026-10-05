@@ -1,0 +1,2 @@
+• Much smaller APK (about 1.5 MB instead of 8.5 MB): code and resources are now shrunk with R8
+• No functional changes
