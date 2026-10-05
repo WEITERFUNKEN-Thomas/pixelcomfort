@@ -43,7 +43,10 @@ android {
     buildTypes {
         release {
             optimization {
-                enable = false
+                enable = true
+                keepRules {
+                    files.add(file("proguard-rules.pro"))
+                }
             }
             if (keystoreProps.isNotEmpty()) {
                 signingConfig = signingConfigs.getByName("release")
