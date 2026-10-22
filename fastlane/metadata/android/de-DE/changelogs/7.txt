@@ -1,0 +1,2 @@
+• Gibt es die Augenkomfort-Einstellung auf einem Gerät nicht, sagt die Startseite das jetzt, statt „Shizuku läuft nicht“ zu melden
+• Verlauf: eine ausgelassene Pause wird nur noch einmal je App-Start eingetragen

@@ -1,0 +1,2 @@
+• If the eye comfort setting does not exist on a device, the home screen now says so instead of “Shizuku isn’t running”
+• History: a skipped pause is logged only once per app start
