@@ -23,6 +23,7 @@
     <string name="error_unreadable">Wert nicht lesbar</string>
     <string name="comfort_title">Augenkomfort</string>
     <string name="comfort_unreadable">Nicht lesbar – Shizuku läuft nicht</string>
+    <string name="comfort_missing">Einstellung auf diesem Gerät nicht gefunden – siehe Erweitert</string>
     <string name="comfort_paused">Pausiert für eine App</string>
     <string name="comfort_on_paused_in">An · pausiert in %1$s</string>
     <string name="toggle_failed">Umschalten fehlgeschlagen: %1$s</string>

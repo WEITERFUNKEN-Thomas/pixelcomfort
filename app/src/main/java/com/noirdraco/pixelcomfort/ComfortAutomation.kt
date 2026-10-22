@@ -39,10 +39,17 @@ class ComfortAutomation(private val env: Env) {
     /** Solange das Wiederherstellen scheitert, nur den ersten Fehlschlag melden. */
     private var restoreFailureReported = false
 
+    /**
+     * Ziel-App, fuer die "nicht lesbar" schon gemeldet wurde. Ein App-Start liefert oft
+     * mehrere Fenster-Events; gemeldet wird nur das erste, bis eine andere App vorn ist.
+     */
+    private var skipReportedFor: String? = null
+
     fun onForeground(pkg: String, isTarget: Boolean) {
         if (isTarget) {
             if (!env.isSuppressed()) suppress(pkg)
         } else {
+            skipReportedFor = null
             if (env.isSuppressed()) restore(pkg)
         }
     }
@@ -50,9 +57,11 @@ class ComfortAutomation(private val env: Env) {
     private fun suppress(pkg: String) {
         val current = env.read()
         if (current == null) {
-            env.report(Event.Skipped(pkg))
+            if (skipReportedFor != pkg) env.report(Event.Skipped(pkg))
+            skipReportedFor = pkg
             return
         }
+        skipReportedFor = null
         if (current == env.offValue) return
         // Zuerst merken, dann schreiben (Zustand bleibt korrekt, auch wenn Write scheitert).
         env.setState(true, current)

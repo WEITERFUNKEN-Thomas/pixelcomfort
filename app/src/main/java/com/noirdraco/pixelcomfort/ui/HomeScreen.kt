@@ -169,6 +169,7 @@ internal fun HomeScreen(
 
 private fun comfortSummary(res: Resources, s: SetupStatus?): String = when {
     s == null -> res.getString(R.string.loading)
+    s.comfortSettingMissing -> res.getString(R.string.comfort_missing)
     s.comfortOn == null -> res.getString(R.string.comfort_unreadable)
     s.suppressed -> res.getString(R.string.comfort_paused)
     !s.comfortOn -> res.getString(R.string.value_off)

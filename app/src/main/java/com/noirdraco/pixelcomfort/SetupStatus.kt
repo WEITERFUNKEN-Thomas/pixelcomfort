@@ -25,6 +25,12 @@ data class SetupStatus(
 ) {
     val shizukuReady: Boolean get() = shizukuBinder && shizukuPermission
 
+    /**
+     * Shizuku laeuft, der Wert ist trotzdem leer: Die konfigurierte Einstellung gibt es
+     * auf diesem Geraet nicht (kein Pixel mit Augenkomfort oder falscher Key).
+     */
+    val comfortSettingMissing: Boolean get() = comfortOn == null && shizukuReady
+
     /** Automatik einsatzbereit? */
     val ready: Boolean get() = shizukuReady && accessibilityEnabled && advancedProtection != true
 

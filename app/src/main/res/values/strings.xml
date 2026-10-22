@@ -24,6 +24,7 @@
     <string name="error_unreadable">Value not readable</string>
     <string name="comfort_title">Comfort View</string>
     <string name="comfort_unreadable">Not readable – Shizuku isn’t running</string>
+    <string name="comfort_missing">Setting not found on this device – see Advanced</string>
     <string name="comfort_paused">Paused for an app</string>
     <string name="comfort_on_paused_in">On · paused in %1$s</string>
     <string name="toggle_failed">Couldn’t switch: %1$s</string>

@@ -20,7 +20,7 @@ object ComfortControl {
     private fun read(context: Context): String? =
         SettingWriter.read(context, Prefs.getNamespace(context), Prefs.getKey(context))
 
-    /** true = an, false = aus, null = nicht lesbar (Shizuku laeuft nicht). */
+    /** true = an, false = aus, null = nicht lesbar (Shizuku laeuft nicht oder Einstellung fehlt). */
     fun isOn(context: Context): Boolean? {
         val value = read(context) ?: return null
         // AUS = exakt der konfigurierte Aus-Wert; alles andere = AN.

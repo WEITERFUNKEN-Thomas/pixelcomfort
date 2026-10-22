@@ -102,6 +102,39 @@ class ComfortAutomationTest {
     }
 
     @Test
+    fun `mehrere Fenster-Events derselben Ziel-App melden das Ueberspringen nur einmal`() {
+        // Ein App-Start liefert oft mehrere TYPE_WINDOW_STATE_CHANGED (Splash, Activity).
+        val env = FakeEnv("1").apply { reachable = false }
+        val automation = ComfortAutomation(env)
+        automation.onForeground(camera, isTarget = true)
+        automation.onForeground(camera, isTarget = true)
+
+        assertEquals(listOf<Event>(Event.Skipped(camera)), env.events)
+    }
+
+    @Test
+    fun `nach einem App-Wechsel wird erneutes Ueberspringen wieder gemeldet`() {
+        val env = FakeEnv("1").apply { reachable = false }
+        val automation = ComfortAutomation(env)
+        automation.onForeground(camera, isTarget = true)
+        automation.onForeground(launcher, isTarget = false)
+        automation.onForeground(camera, isTarget = true)
+
+        assertEquals(listOf<Event>(Event.Skipped(camera), Event.Skipped(camera)), env.events)
+    }
+
+    @Test
+    fun `Wechsel zwischen zwei Ziel-Apps meldet beide`() {
+        val photos = "com.google.android.apps.photos"
+        val env = FakeEnv("1").apply { reachable = false }
+        val automation = ComfortAutomation(env)
+        automation.onForeground(camera, isTarget = true)
+        automation.onForeground(photos, isTarget = true)
+
+        assertEquals(listOf<Event>(Event.Skipped(camera), Event.Skipped(photos)), env.events)
+    }
+
+    @Test
     fun `nach uebersprungenem Pausieren wird beim Verlassen nichts eingeschaltet`() {
         // Der alte Fehler: Filter war aus, Shizuku weg -> "1" gemerkt -> spaeter eingeschaltet.
         val env = FakeEnv("0").apply { reachable = false }
