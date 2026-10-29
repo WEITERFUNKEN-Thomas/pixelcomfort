@@ -32,14 +32,17 @@ import java.time.LocalDate
 import java.time.ZoneId
 import kotlin.concurrent.thread
 
-/** Was die App zuletzt geschaltet hat, neueste Eintraege oben, nach Tagen gruppiert. */
+/**
+ * Was die App zuletzt geschaltet hat, neueste Eintraege oben, nach Tagen gruppiert.
+ * Laedt bei jedem neuen [refreshKey] neu, also auch nach der Rueckkehr in die App.
+ */
 @Composable
-internal fun HistoryScreen(onBack: () -> Unit) {
+internal fun HistoryScreen(refreshKey: Int, onBack: () -> Unit) {
     val context = LocalContext.current.applicationContext
     val res = LocalResources.current
     var entries by remember { mutableStateOf<List<History.Entry>?>(null) }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(refreshKey) {
         thread { entries = HistoryStore.load(context) }
     }
 

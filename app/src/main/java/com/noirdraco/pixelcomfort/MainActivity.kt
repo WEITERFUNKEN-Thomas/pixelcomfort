@@ -55,7 +55,10 @@ class MainActivity : ComponentActivity() {
                         onOpenDns = { screen = Screen.DNS },
                     )
 
-                    Screen.HISTORY -> HistoryScreen(onBack = toHome)
+                    Screen.HISTORY -> HistoryScreen(
+                        refreshKey = refresh.intValue,
+                        onBack = toHome,
+                    )
 
                     Screen.APPS -> AppsScreen(onBack = toHome)
 
