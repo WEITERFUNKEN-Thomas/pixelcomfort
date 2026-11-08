@@ -37,6 +37,7 @@ import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import com.noirdraco.pixelcomfort.ForegroundApp
 import com.noirdraco.pixelcomfort.Prefs
 import com.noirdraco.pixelcomfort.R
 import com.noirdraco.pixelcomfort.SetupStatus
@@ -156,6 +157,13 @@ internal fun AdvancedScreen(refreshKey: Int, onRefresh: () -> Unit, onBack: () -
                     onClick = { grant() },
                 )
                 SettingsRow(
+                    title = stringResource(R.string.usage_access),
+                    summary = permissionSummary(res, "GET_USAGE_STATS", s?.usageAccess),
+                    icon = if (s?.usageAccess == true) R.drawable.ic_check_circle else R.drawable.ic_key,
+                    iconTint = tint(s?.usageAccess),
+                    onClick = { if (s?.shizukuReady == true) grant() else openUsageAccessSettings(context) },
+                )
+                SettingsRow(
                     title = stringResource(R.string.adv_system_dialog),
                     summary = stringResource(R.string.adv_system_dialog_summary),
                     icon = R.drawable.ic_tune,
@@ -194,8 +202,9 @@ private fun tint(granted: Boolean?) =
     if (granted == true) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
 
 /**
- * WRITE_SECURE_SETTINGS und den WRITE_SETTINGS-AppOp einmalig per Shizuku erteilen.
- * Beide bleiben danach auch ohne Shizuku erhalten. Laeuft auf einem eigenen Thread.
+ * WRITE_SECURE_SETTINGS, den WRITE_SETTINGS-AppOp und den Zugriff auf Nutzungsdaten
+ * einmalig per Shizuku erteilen. Alle bleiben danach auch ohne Shizuku erhalten. Laeuft auf
+ * einem eigenen Thread.
  *
  * Zwei getrennte Aufrufe statt einer Shell-Zeile: sonst zaehlte nur der Exit-Code des
  * letzten Kommandos, ein gescheitertes `pm grant` fiele nicht auf. Erfolg wird zum
@@ -211,9 +220,11 @@ internal fun grantViaShizuku(context: Context, res: Resources, say: (String) -> 
                 val errors = listOf(
                     ShizukuShell.run("pm", "grant", pkg, Manifest.permission.WRITE_SECURE_SETTINGS),
                     ShizukuShell.run("appops", "set", pkg, "WRITE_SETTINGS", "allow"),
+                    ShizukuShell.run("appops", "set", pkg, "GET_USAGE_STATS", "allow"),
                 ).filterNot { it.success }.map { it.err.ifEmpty { "exit=${it.exitCode}" } }
                 val granted = context.checkSelfPermission(Manifest.permission.WRITE_SECURE_SETTINGS) ==
-                    PackageManager.PERMISSION_GRANTED && Settings.System.canWrite(context)
+                    PackageManager.PERMISSION_GRANTED && Settings.System.canWrite(context) &&
+                    ForegroundApp.hasAccess(context)
                 when {
                     errors.isNotEmpty() -> res.getString(R.string.failed, errors.joinToString("; "))
                     !granted -> res.getString(R.string.failed, "permissions not granted after pm grant/appops set")
@@ -226,4 +237,11 @@ internal fun grantViaShizuku(context: Context, res: Resources, say: (String) -> 
         say(msg)
         onRefresh()
     }
+}
+
+/** Android-Seite "Zugriff auf Nutzungsdaten" - der Weg ohne Shizuku. */
+internal fun openUsageAccessSettings(context: Context) {
+    val withPackage = Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS, "package:${context.packageName}".toUri())
+    runCatching { context.startActivity(withPackage) }
+        .recoverCatching { context.startActivity(Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS)) }
 }

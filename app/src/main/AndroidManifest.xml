@@ -15,6 +15,11 @@
 
     <!-- Warnung, wenn Shizuku nicht laeuft (ab Android 13 vom Nutzer zu erlauben) -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Nutzungsdaten: welche App gerade vorn ist (ForegroundApp). Per Shizuku (appops)
+         oder in den Android-Einstellungen erteilt; ohne sie arbeitet die Heuristik. -->
+    <uses-permission
+        android:name="android.permission.PACKAGE_USAGE_STATS"
+        tools:ignore="ProtectedPermissions" />
 
     <!--
       Privates DNS je nach WLAN: Netzwechsel beobachten und den WLAN-Namen lesen.

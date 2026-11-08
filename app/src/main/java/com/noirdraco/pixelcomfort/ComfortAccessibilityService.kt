@@ -20,7 +20,8 @@ import rikka.shizuku.Shizuku
  * Vordergrund kommt, wird der aktuelle Comfort-View-Wert des Systems gemerkt und auf
  * AUS gesetzt. Beim Wechsel zu einer anderen App wird der gemerkte Wert exakt wieder
  * hergestellt. Andere Einstellungen werden nicht angefasst. Die Entscheidungen selbst
- * stehen in [AppRuleAutomation].
+ * stehen in [AppRuleAutomation]. Welche App wirklich vorn ist, sagt [ForegroundApp]
+ * (Nutzungsdaten); ohne diesen Zugriff entscheidet [WindowSwitch].
  *
  * Beim (Neu-)Verbinden des Dienstes wird bewusst NICHTS geschrieben: Ohne
  * canRetrieveWindowContent laesst sich die Vordergrund-App hier nicht ermitteln, und
@@ -111,25 +112,42 @@ class ComfortAccessibilityService : AccessibilityService() {
         // Overlays wie Benachrichtigungs-Shade / Tastatur / Dialoge / eigene App
         // ignorieren, damit sie ueber der Kamera keine vorzeitige Wiederherstellung
         // ausloesen.
-        if (pkg == packageName || pkg in IGNORED_PACKAGES || pkg == currentImePackage()) return
+        if (isIgnored(pkg)) return
+        val cls = event.className?.toString()
         val time = event.eventTime.takeIf { it > 0 } ?: SystemClock.uptimeMillis()
-        if (!isAppSwitch(pkg, event.className?.toString(), time)) {
-            Log.d(TAG, "Spaetes Fenster einer eben verlassenen App, kein App-Wechsel: $pkg / ${event.className}")
-            return
-        }
+        // Immer fragen, damit WindowSwitch den Verlauf kennt - auch wenn Android antwortet.
+        val heuristicSwitch = isAppSwitch(pkg, cls, time)
 
-        val isTarget = pkg in Prefs.getPackages(this)
-        // Suppressed-Pruefung erst IM Task, damit schnell aufeinanderfolgende Events
+        // Alles Weitere auf dem Worker: die Nutzungsdaten-Abfrage blockiert kurz, und die
+        // Suppressed-Pruefung muss IM Task passieren, damit schnell aufeinanderfolgende Events
         // (Kamera -> Launcher) seriell und ohne Doppel-Schreiben verarbeitet werden.
         // SettingsWorker ist prozessweit und wird mit der Kachel geteilt, damit
         // Automatik und manuelles Umschalten sich nicht ueberholen.
-        SettingsWorker.submit { automation.onForeground(pkg, isTarget) }
+        SettingsWorker.submit {
+            val resumed = ForegroundApp.lastResumed(this)
+            val front = ForegroundApp.decide(pkg, resumed, heuristicSwitch, ::isIgnored)
+            when {
+                front == null && resumed == null ->
+                    Log.d(TAG, "Spaetes Fenster einer eben verlassenen App, kein App-Wechsel: $pkg / $cls")
 
-        if (Prefs.getRotateEnabled(this)) {
-            val rotateHere = pkg in Prefs.getRotatePackages(this)
-            SettingsWorker.submit { rotation.onForeground(pkg, rotateHere) }
+                front == null -> Log.d(TAG, "Vorn laut Android: $resumed (ignoriert), Fenster von $pkg")
+                front != pkg -> Log.d(TAG, "Vorn laut Android: $front, Fenster von $pkg / $cls")
+            }
+            if (front != null) onForeground(front)
         }
     }
+
+    /** [pkg] ist vorn. Nur auf dem [SettingsWorker]. */
+    private fun onForeground(pkg: String) {
+        automation.onForeground(pkg, pkg in Prefs.getPackages(this))
+        if (Prefs.getRotateEnabled(this)) {
+            rotation.onForeground(pkg, pkg in Prefs.getRotatePackages(this))
+        }
+    }
+
+    /** Overlays wie Shade, Tastatur, Dialoge und die eigene App sind kein App-Wechsel. */
+    private fun isIgnored(pkg: String): Boolean =
+        pkg == packageName || pkg in IGNORED_PACKAGES || pkg == currentImePackage()
 
     /** Die echte Umgebung der Automatik: Settings, gemerkter Zustand, Log, Verlauf, Warnung. */
     private inner class ServiceEnv : AppRuleAutomation.Env {

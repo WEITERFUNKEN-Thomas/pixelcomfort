@@ -95,6 +95,8 @@
     <string name="perm_granted">Granted · %1$s</string>
     <string name="perm_missing">Missing · Tap to grant via Shizuku</string>
     <string name="perms_granted">Permissions granted</string>
+    <string name="usage_access">Usage access</string>
+    <string name="usage_hint_summary">Lets eye comfort and auto-rotate tell reliably which app is in front. Only the app in front is read, nothing is stored. Tap to grant.</string>
     <string name="adv_system_dialog">Allow in system dialog</string>
     <string name="adv_system_dialog_summary">Modify system settings, without Shizuku</string>
     <string name="adv_permissions_footer">These permissions aren’t enough for Comfort View itself: Android doesn’t let other apps change that setting directly, so switching goes through Shizuku. Shizuku has to be started again after every restart.</string>

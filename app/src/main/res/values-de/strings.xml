@@ -93,6 +93,8 @@
     <string name="perm_granted">Erteilt · %1$s</string>
     <string name="perm_missing">Fehlt · Tippen zum Erteilen per Shizuku</string>
     <string name="perms_granted">Berechtigungen erteilt</string>
+    <string name="usage_access">Zugriff auf Nutzungsdaten</string>
+    <string name="usage_hint_summary">Damit erkennen Augenkomfort und Drehen zuverlässig, welche App vorn ist. Gelesen wird nur die App im Vordergrund, gespeichert wird nichts. Tippen zum Erteilen.</string>
     <string name="adv_system_dialog">Im Systemdialog erlauben</string>
     <string name="adv_system_dialog_summary">Systemeinstellungen ändern, ohne Shizuku</string>
     <string name="adv_permissions_footer">Für den Augenkomfort-Modus selbst reichen diese Rechte nicht: Android lässt fremde Apps diese Einstellung nicht direkt ändern, deshalb läuft das Schalten über Shizuku. Shizuku muss nach jedem Neustart gestartet werden.</string>

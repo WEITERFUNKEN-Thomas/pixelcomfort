@@ -187,6 +187,24 @@ internal fun HomeScreen(
         ) {
             if (s != null && !complete) SetupGroup(s, context, res, ::say, onRefresh)
 
+            // Freiwillig: genauer erkennen, welche App vorn ist (zaehlt nicht zur Einrichtung).
+            if (s != null && s.usageHint) {
+                SettingsGroup {
+                    SettingsRow(
+                        title = stringResource(R.string.usage_access),
+                        summary = stringResource(R.string.usage_hint_summary),
+                        icon = R.drawable.ic_key,
+                        onClick = {
+                            if (s.shizukuReady) {
+                                grantViaShizuku(context, res, ::say, onRefresh)
+                            } else {
+                                openUsageAccessSettings(context)
+                            }
+                        },
+                    )
+                }
+            }
+
             SettingsGroup {
                 // ---- Augenkomfort: Schalter = Filter von Hand, Karte = Apps ----
                 val comfortOn = if (s?.comfortOn == null) null else pendingOn ?: s.comfortOn
