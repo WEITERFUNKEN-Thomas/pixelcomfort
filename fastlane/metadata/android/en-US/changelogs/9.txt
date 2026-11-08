@@ -1,0 +1,6 @@
+• New design: the home screen shows one card per feature
+• New: hide the mobile signal icon while Wi‑Fi is connected
+• New: auto-rotate only in the apps you choose, with a tile
+• New: always-on display by Bluetooth device or Wi‑Fi
+• New: Quick Settings tile for NFC
+• Now requires Android 13 or newer

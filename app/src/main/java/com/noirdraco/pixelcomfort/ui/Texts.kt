@@ -59,6 +59,12 @@ internal fun historyTitle(res: Resources, e: History.Entry): String {
             History.Kind.FONT -> R.string.history_font
             History.Kind.DNS_HOME -> R.string.history_dns_home
             History.Kind.DNS_AWAY -> R.string.history_dns_away
+            History.Kind.MOBILE_HIDDEN -> R.string.history_mobile_hidden
+            History.Kind.MOBILE_SHOWN -> R.string.history_mobile_shown
+            History.Kind.ROTATE_ON -> R.string.history_rotate_on
+            History.Kind.ROTATE_RESTORE -> R.string.history_rotate_restore
+            History.Kind.AOD_ON -> if (e.subject.isEmpty()) R.string.history_aod_on_own else R.string.history_aod_on
+            History.Kind.AOD_OFF -> if (e.subject.isEmpty()) R.string.history_aod_off_own else R.string.history_aod_off
         }
     } else {
         when (e.kind) {
@@ -71,6 +77,11 @@ internal fun historyTitle(res: Resources, e: History.Entry): String {
             History.Kind.FONT -> R.string.history_font_failed
             History.Kind.DNS_HOME -> R.string.history_dns_home_failed
             History.Kind.DNS_AWAY -> R.string.history_dns_away_failed
+            History.Kind.MOBILE_HIDDEN -> R.string.history_mobile_hidden_failed
+            History.Kind.MOBILE_SHOWN -> R.string.history_mobile_shown_failed
+            History.Kind.ROTATE_ON -> R.string.history_rotate_on_failed
+            History.Kind.ROTATE_RESTORE -> R.string.history_rotate_restore_failed
+            History.Kind.AOD_ON, History.Kind.AOD_OFF -> R.string.history_aod_failed
         }
     }
     // Texte ohne Platzhalter ignorieren das Argument.

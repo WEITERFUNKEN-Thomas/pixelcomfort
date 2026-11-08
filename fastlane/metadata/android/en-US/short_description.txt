@@ -1,1 +1,1 @@
-Turns Comfort View off in the camera and Photos, then restores it
+Comfort View off in the camera, private DNS by Wi‑Fi, AOD rules and more

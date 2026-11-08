@@ -45,6 +45,11 @@ object Prefs {
     private const val K_DNS_ENABLED = "dns_enabled"
     private const val K_DNS_HOME_SSIDS = "dns_home_ssids"
     private const val K_DNS_HOSTNAME = "dns_hostname"
+    private const val K_HIDE_MOBILE_ON_WIFI = "hide_mobile_on_wifi"
+    private const val K_ROTATE_ENABLED = "rotate_enabled"
+    private const val K_ROTATE_PACKAGES = "rotate_packages"
+    private const val K_ROTATE_ACTIVE = "rotate_active"
+    private const val K_ROTATE_SAVED = "rotate_saved"
     private const val K_SUPPRESSED = "suppressed"
     private const val K_SAVED_VALUE = "saved_value"
 
@@ -119,7 +124,32 @@ object Prefs {
     fun getDnsHostname(c: Context): String = sp(c).getString(K_DNS_HOSTNAME, "").orEmpty()
     fun setDnsHostname(c: Context, hostname: String) = sp(c).edit { putString(K_DNS_HOSTNAME, hostname) }
 
+    // ---- Statusleiste (Konfiguration, wird mit gesichert) ----
+
+    fun getHideMobileOnWifi(c: Context): Boolean = sp(c).getBoolean(K_HIDE_MOBILE_ON_WIFI, false)
+    fun setHideMobileOnWifi(c: Context, enabled: Boolean) = sp(c).edit { putBoolean(K_HIDE_MOBILE_ON_WIFI, enabled) }
+
+    // ---- Automatisch drehen (Konfiguration, wird mit gesichert) ----
+
+    fun getRotateEnabled(c: Context): Boolean = sp(c).getBoolean(K_ROTATE_ENABLED, false)
+    fun setRotateEnabled(c: Context, enabled: Boolean) = sp(c).edit { putBoolean(K_ROTATE_ENABLED, enabled) }
+
+    /** Startet leer: die Apps waehlt man selbst. */
+    fun getRotatePackages(c: Context): Set<String> =
+        sp(c).getString(K_ROTATE_PACKAGES, "").orEmpty().split(",").map { it.trim() }.filter { it.isNotEmpty() }.toSet()
+
+    fun setRotatePackages(c: Context, packages: Set<String>) =
+        sp(c).edit { putString(K_ROTATE_PACKAGES, AppList.serialize(packages)) }
+
     // ---- Laufzeit-Zustand ----
+
+    /** Drehen ist gerade fuer eine Ziel-App eingeschaltet; [getRotateSaved] = Wert davor. */
+    fun getRotateActive(c: Context): Boolean = state(c).getBoolean(K_ROTATE_ACTIVE, false)
+    fun getRotateSaved(c: Context): String? = state(c).getString(K_ROTATE_SAVED, null)
+    fun setRotateState(c: Context, active: Boolean, saved: String?) = state(c).edit {
+        putBoolean(K_ROTATE_ACTIVE, active)
+        putString(K_ROTATE_SAVED, saved)
+    }
 
     fun getSuppressed(c: Context): Boolean = state(c).getBoolean(K_SUPPRESSED, false)
     fun getSavedValue(c: Context): String? = state(c).getString(K_SAVED_VALUE, null)

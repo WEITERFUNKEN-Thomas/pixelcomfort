@@ -10,16 +10,15 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.wifi.WifiInfo
 import android.net.wifi.WifiManager
-import android.os.Build
 import android.util.Log
-import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import com.noirdraco.pixelcomfort.DnsAutomation.Network
 import com.noirdraco.pixelcomfort.DnsAutomation.Security
 
 /**
- * Meldet der [DnsAutomation] jeden Wechsel des Standard-Netzes. Das System ruft den
- * Callback von sich aus auf - es wird nie abgefragt, kein Timer, kein Wakelock.
+ * Meldet der [DnsAutomation] und der [MobileIconAutomation] jeden Wechsel des
+ * Standard-Netzes. Das System ruft den Callback von sich aus auf - es wird nie
+ * abgefragt, kein Timer, kein Wakelock.
  *
  * Laeuft im [ComfortAccessibilityService] (der ohnehin dauerhaft laeuft und nach einem
  * Neustart vom System gestartet wird). Die Oberflaeche ruft [restart] nach jeder
@@ -29,7 +28,7 @@ import com.noirdraco.pixelcomfort.DnsAutomation.Security
  * Den WLAN-Namen liefert Android nur mit FLAG_INCLUDE_LOCATION_INFO und
  * Standort-Berechtigung; ohne sie ist die SSID leer - dann gilt "unterwegs".
  */
-object DnsWatcher {
+object NetworkWatcher {
 
     private const val TAG = ComfortAccessibilityService.TAG
 
@@ -44,13 +43,13 @@ object DnsWatcher {
 
     @Synchronized
     fun start(context: Context) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S || callback != null) return
+        if (callback != null) return
         val ctx = context.applicationContext
         val cb = Callback()
         try {
             ctx.getSystemService(ConnectivityManager::class.java).registerDefaultNetworkCallback(cb)
         } catch (t: Throwable) {
-            Log.e(TAG, "DNS: Netz-Callback nicht registrierbar", t)
+            Log.e(TAG, "Netz-Callback nicht registrierbar", t)
             return
         }
         appContext = ctx
@@ -67,7 +66,7 @@ object DnsWatcher {
             )
             locationReceiver = receiver
         }
-        Log.i(TAG, "DNS: Netzwechsel werden beobachtet")
+        Log.i(TAG, "Netzwechsel werden beobachtet")
     }
 
     @Synchronized
@@ -94,11 +93,11 @@ object DnsWatcher {
         if (cb !== callback || network == last) return
         last = network
         val ctx = appContext ?: return
-        Log.d(TAG, "DNS: Standard-Netz $network")
+        Log.d(TAG, "Standard-Netz $network")
         SettingsWorker.submit { PrivateDns.automation(ctx).onNetwork(network) }
+        SettingsWorker.submit { MobileIcon.automation(ctx).onNetwork(onWifi = network?.wifiTransport == true) }
     }
 
-    @RequiresApi(Build.VERSION_CODES.S)
     private class Callback : ConnectivityManager.NetworkCallback(FLAG_INCLUDE_LOCATION_INFO) {
         override fun onCapabilitiesChanged(network: android.net.Network, caps: NetworkCapabilities) {
             emit(this, snapshot(caps))
@@ -109,13 +108,12 @@ object DnsWatcher {
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.S)
     private fun snapshot(caps: NetworkCapabilities): Network {
         val info = caps.transportInfo as? WifiInfo
-        return fromWifiInfo(caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) && info != null, info)
+        val wifi = caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)
+        return fromWifiInfo(wifi && info != null, info).copy(wifiTransport = wifi)
     }
 
-    @RequiresApi(Build.VERSION_CODES.S)
     private fun fromWifiInfo(isWifi: Boolean, info: WifiInfo?): Network =
         if (!isWifi || info == null) {
             Network(isWifi = false, ssid = null, security = Security.UNKNOWN)
@@ -130,22 +128,19 @@ object DnsWatcher {
      */
     @SuppressLint("MissingPermission")
     fun current(context: Context): Network? {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return null
         val cm = context.getSystemService(ConnectivityManager::class.java)
         val active = cm.activeNetwork ?: return null
         val caps = cm.getNetworkCapabilities(active) ?: return null
         if (!caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) return fromWifiInfo(false, null)
         @Suppress("DEPRECATION")
         val info = runCatching { context.getSystemService(WifiManager::class.java).connectionInfo }.getOrNull()
-        return fromWifiInfo(true, info)
+        return fromWifiInfo(true, info).copy(wifiTransport = true)
     }
 
     /**
      * Gesichert = Passwort oder Zertifikat noetig. OWE ist zwar verschluesselt, aber
      * ohne Passwort - wie offen. WEP gilt als geknackt.
      */
-    @SuppressLint("InlinedApi") // DPP ab API 33: Konstante wird eingebettet, aeltere Geraete liefern sie nie
-    @RequiresApi(Build.VERSION_CODES.S)
     private fun security(type: Int): Security = when (type) {
         WifiInfo.SECURITY_TYPE_PSK,
         WifiInfo.SECURITY_TYPE_SAE,

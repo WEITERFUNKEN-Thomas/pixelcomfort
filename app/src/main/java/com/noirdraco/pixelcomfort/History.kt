@@ -32,6 +32,22 @@ object History {
 
         /** Unterwegs: privates DNS eingetragen (subject = DNS-Name). */
         DNS_AWAY,
+
+        /** WLAN verbunden: Mobilfunk-Symbol in der Statusleiste ausgeblendet. */
+        MOBILE_HIDDEN,
+
+        /** Kein WLAN (oder Funktion aus): Mobilfunk-Symbol wieder gezeigt. */
+        MOBILE_SHOWN,
+
+        /** Automatisch drehen fuer eine Ziel-App eingeschaltet (subject = App). */
+        ROTATE_ON,
+
+        /** Automatisch drehen zurueckgestellt. */
+        ROTATE_RESTORE,
+
+        /** Always-On-Display geschaltet (subject = Ausloeser der Regel, leer = eigener Wert). */
+        AOD_ON,
+        AOD_OFF,
     }
 
     /**

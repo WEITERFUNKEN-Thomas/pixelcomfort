@@ -21,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -73,7 +74,7 @@ internal fun HistoryScreen(refreshKey: Int, onBack: () -> Unit) {
         val days = loaded.groupBy { Instant.ofEpochMilli(it.time).atZone(zone).toLocalDate() }
 
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding),
+            modifier = Modifier.fillMaxSize().padding(padding).testTag("history_list"),
             contentPadding = PaddingValues(start = PagePadding, end = PagePadding, bottom = 24.dp),
         ) {
             days.forEach { (day, dayEntries) ->
@@ -118,6 +119,9 @@ private fun icon(kind: History.Kind): Int = when (kind) {
     History.Kind.TILE -> R.drawable.ic_tile
     History.Kind.WIDTH, History.Kind.FONT -> R.drawable.ic_tune
     History.Kind.DNS_HOME, History.Kind.DNS_AWAY -> R.drawable.ic_dns
+    History.Kind.MOBILE_HIDDEN, History.Kind.MOBILE_SHOWN -> R.drawable.ic_signal
+    History.Kind.ROTATE_ON, History.Kind.ROTATE_RESTORE -> R.drawable.ic_screen_rotation
+    History.Kind.AOD_ON, History.Kind.AOD_OFF -> R.drawable.ic_aod
 }
 
 /** Erste und letzte Zeile bekommen die grossen Aussen-Ecken der Gruppe. */

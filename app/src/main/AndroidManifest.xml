@@ -27,6 +27,12 @@
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <!--
+      Always-On-Display-Regeln: verbundene Bluetooth-Geraete erkennen (nur Verbindungs-
+      Ereignisse, es wird nie gescannt).
+    -->
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+
+    <!--
       App-Auswahl: macht alle startbaren Apps sichtbar (Name + Symbol), ohne die
       Berechtigung QUERY_ALL_PACKAGES zu verlangen.
     -->
@@ -46,8 +52,7 @@
         android:localeConfig="@xml/locales_config"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.PixelComfort"
-        tools:targetApi="33">
+        android:theme="@style/Theme.PixelComfort">
 
         <activity
             android:name=".MainActivity"
@@ -88,6 +93,44 @@
                 <action android:name="android.service.quicksettings.action.QS_TILE" />
             </intent-filter>
         </service>
+
+        <!-- Kachel "Drehen in Apps": schaltet die Dreh-Regel ein und aus -->
+        <service
+            android:name=".RotateTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_screen_rotation"
+            android:label="@string/rotate_tile_label"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+
+        <!--
+          Kachel "NFC": schaltet NFC an und aus (offizielle API, sonst svc nfc ueber Shizuku)
+        -->
+        <service
+            android:name=".NfcTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_nfc"
+            android:label="@string/nfc_tile_label"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
+
+        <!-- Langes Druecken auf eine Kachel: NFC -> NFC-Seite von Android, sonst App-Info -->
+        <activity
+            android:name=".TilePreferencesActivity"
+            android:exported="true"
+            android:excludeFromRecents="true"
+            android:noHistory="true"
+            android:theme="@android:style/Theme.NoDisplay">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE_PREFERENCES" />
+            </intent-filter>
+        </activity>
 
         <!-- Shizuku -->
         <provider

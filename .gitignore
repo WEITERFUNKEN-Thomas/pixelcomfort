@@ -11,3 +11,4 @@ keystore.properties
 
 # macOS
 .DS_Store
+/macrobenchmark/build

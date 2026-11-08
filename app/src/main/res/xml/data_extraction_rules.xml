@@ -6,8 +6,10 @@
 <data-extraction-rules>
     <cloud-backup>
         <exclude domain="sharedpref" path="pixelcomfort_state.xml" />
+        <exclude domain="file" path="datastore/aod_rules.json" />
     </cloud-backup>
     <device-transfer>
         <exclude domain="sharedpref" path="pixelcomfort_state.xml" />
+        <exclude domain="file" path="datastore/aod_rules.json" />
     </device-transfer>
 </data-extraction-rules>

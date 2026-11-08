@@ -48,7 +48,17 @@ object SettingWriter {
         else -> null
     }
 
-    fun read(context: Context, namespace: String, key: String): String? {
+    fun read(context: Context, namespace: String, key: String): String? =
+        readChecked(context, namespace, key)?.value
+
+    /** Gelesener Wert; [value] = null heisst: nicht gesetzt. */
+    data class ReadResult(val value: String?)
+
+    /**
+     * Wie [read], unterscheidet aber "nicht gesetzt" (ReadResult(null)) von "nicht
+     * lesbar" (null) - wichtig, bevor eine Liste umgeschrieben wird.
+     */
+    fun readChecked(context: Context, namespace: String, key: String): ReadResult? {
         validate(namespace, key)?.let {
             Log.w(TAG, "read abgelehnt: $it")
             return null
@@ -56,6 +66,7 @@ object SettingWriter {
         // 1) ContentResolver. Fuer nicht-oeffentliche System-Keys (z.B. cv_enabled)
         //    liefert das null, weil Fremd-Apps sie nicht lesen duerfen.
         val cr = context.contentResolver
+        var crReadable = true
         val crValue = try {
             when (namespace) {
                 Prefs.NS_SYSTEM -> Settings.System.getString(cr, key)
@@ -66,21 +77,60 @@ object SettingWriter {
         } catch (t: Throwable) {
             // Erwartbar fuer nicht-oeffentliche @hide-Keys (z.B. cv_*) -> Shizuku liest.
             Log.d(TAG, "read($namespace/$key) via ContentResolver nicht moeglich -> Shizuku")
+            crReadable = false
             null
         }
-        if (crValue != null) return crValue
+        if (crValue != null) return ReadResult(crValue)
 
         // 2) Shizuku-Fallback
         if (ShizukuShell.isReady()) {
-            return try {
+            try {
                 val v = ShizukuShell.run("settings", "get", namespace, key).out.trim()
-                if (v.isEmpty() || v == "null") null else v
+                return ReadResult(if (v.isEmpty() || v == "null") null else v)
             } catch (t: Throwable) {
                 Log.w(TAG, "read($namespace/$key) via Shizuku fehlgeschlagen", t)
-                null
             }
         }
-        return null
+        return if (crReadable) ReadResult(null) else null
+    }
+
+    /** Key entfernen (zurueck auf den Android-Standard), gleiche Strategie wie [write]. */
+    fun delete(context: Context, namespace: String, key: String): WriteResult {
+        validate(namespace, key)?.let { return WriteResult(false, Method.NONE, it) }
+
+        val crError: String? = try {
+            val cr = context.contentResolver
+            val ok = when (namespace) {
+                Prefs.NS_SYSTEM -> Settings.System.putString(cr, key, null)
+                Prefs.NS_SECURE -> Settings.Secure.putString(cr, key, null)
+                Prefs.NS_GLOBAL -> Settings.Global.putString(cr, key, null)
+                else -> false
+            }
+            val readBack = if (ok) readChecked(context, namespace, key) else null
+            if (readBack != null && readBack.value == null) {
+                return WriteResult(true, Method.CONTENT_RESOLVER, "ContentResolver: $key geloescht")
+            }
+            if (!ok) "putString(null) returned false" else "value still set after delete"
+        } catch (t: Throwable) {
+            t.javaClass.simpleName + (t.message?.let { ": $it" } ?: "")
+        }
+
+        if (ShizukuShell.isReady()) {
+            return try {
+                val res = ShizukuShell.run("settings", "delete", namespace, key)
+                val readBack = readChecked(context, namespace, key)
+                if (readBack != null && readBack.value == null) {
+                    WriteResult(true, Method.SHIZUKU, "Shizuku shell: $key deleted")
+                } else {
+                    WriteResult(false, Method.SHIZUKU, "Shizuku delete had no effect (exit=${res.exitCode}, err=${res.err}, read=${readBack?.value})")
+                }
+            } catch (t: Throwable) {
+                Log.e(TAG, "Shizuku-Delete fehlgeschlagen", t)
+                WriteResult(false, Method.SHIZUKU, "Shizuku error: ${t.message}")
+            }
+        }
+
+        return WriteResult(false, Method.NONE, "ContentResolver failed ($crError) and Shizuku not available")
     }
 
     fun write(context: Context, namespace: String, key: String, value: String): WriteResult {

@@ -5,4 +5,5 @@
 -->
 <full-backup-content>
     <exclude domain="sharedpref" path="pixelcomfort_state.xml" />
+    <exclude domain="file" path="datastore/aod_rules.json" />
 </full-backup-content>

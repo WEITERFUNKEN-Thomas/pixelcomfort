@@ -1,6 +1,5 @@
 package com.noirdraco.pixelcomfort
 
-import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.service.quicksettings.Tile
@@ -93,8 +92,7 @@ class ComfortTileService : TileService() {
             val tile = qsTile ?: return@post
             tile.state = s.state
             tile.label = getString(R.string.qs_tile_label)
-            // Untertitel gibt es erst ab Android 10.
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) tile.subtitle = s.subtitle
+            tile.subtitle = s.subtitle
             tile.updateTile()
         }
     }

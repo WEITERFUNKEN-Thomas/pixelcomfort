@@ -6,7 +6,6 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import android.util.Log
 import com.noirdraco.pixelcomfort.DnsAutomation.Event
 
@@ -25,9 +24,6 @@ object PrivateDns {
     private const val TAG = ComfortAccessibilityService.TAG
     private const val KEY_MODE = "private_dns_mode"
     private const val KEY_SPECIFIER = "private_dns_specifier"
-
-    /** WLAN-Name und Sicherheitsart zusammen gibt es erst ab Android 12. */
-    val supported: Boolean get() = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
 
     fun readMode(context: Context): String? = SettingWriter.read(context, Prefs.NS_GLOBAL, KEY_MODE)
     fun readSpecifier(context: Context): String? = SettingWriter.read(context, Prefs.NS_GLOBAL, KEY_SPECIFIER)

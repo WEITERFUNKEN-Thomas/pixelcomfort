@@ -22,6 +22,11 @@ data class SetupStatus(
     val notificationsAllowed: Boolean,
     val lastEntry: History.Entry?,
     val dns: DnsStatus,
+    /** Mobilfunk-Symbol im WLAN ausblenden. */
+    val hideMobileOnWifi: Boolean,
+    /** Automatisch drehen in ausgewaehlten Apps. */
+    val rotateEnabled: Boolean,
+    val rotateLabels: List<String>,
 ) {
     val shizukuReady: Boolean get() = shizukuBinder && shizukuPermission
 
@@ -37,7 +42,6 @@ data class SetupStatus(
     companion object {
         /** Blockiert (Shizuku-Read) - nicht auf dem Main-Thread aufrufen. */
         fun read(context: Context): SetupStatus {
-            val pm = context.packageManager
             return SetupStatus(
                 shizukuBinder = ShizukuShell.isBinderAlive(),
                 shizukuPermission = ShizukuShell.hasPermission(),
@@ -50,12 +54,13 @@ data class SetupStatus(
                 currentValue = SettingWriter.read(context, Prefs.getNamespace(context), Prefs.getKey(context)),
                 comfortOn = ComfortControl.isOn(context),
                 suppressed = Prefs.getSuppressed(context),
-                targetLabels = Prefs.getPackages(context).map { pkg ->
-                    runCatching { pm.getApplicationInfo(pkg, 0).loadLabel(pm).toString() }.getOrDefault(pkg)
-                },
+                targetLabels = Prefs.getPackages(context).map(context::appLabel),
+                rotateEnabled = Prefs.getRotateEnabled(context),
+                rotateLabels = Prefs.getRotatePackages(context).map(context::appLabel),
                 notificationsAllowed = ShizukuWarning.allowed(context),
                 lastEntry = HistoryStore.load(context).firstOrNull(),
                 dns = DnsStatus.read(context),
+                hideMobileOnWifi = Prefs.getHideMobileOnWifi(context),
             )
         }
 

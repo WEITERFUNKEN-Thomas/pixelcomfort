@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name" translatable="false">PixelComfort</string>
     <string name="accessibility_service_label">PixelComfort auto-off</string>
-    <string name="accessibility_service_description">Turns Comfort View off automatically while the camera or Photos app is in the foreground, and restores it when you leave. If you turn it on, it also switches private DNS off on your home Wi‑Fi and on everywhere else.</string>
+    <string name="accessibility_service_description">Turns Comfort View off automatically while the camera or Photos app is in the foreground, and restores it when you leave. If you turn them on, it also switches private DNS by Wi‑Fi, hides the mobile signal icon on Wi‑Fi, turns auto-rotate on in the apps you choose and switches the always-on display by Bluetooth device or Wi‑Fi.</string>
     <string name="qs_tile_label">Comfort View</string>
     <string name="value_on">On</string>
     <string name="value_off">Off</string>
@@ -30,7 +30,6 @@
     <string name="toggle_failed">Couldn’t switch: %1$s</string>
     <string name="setup_title">Setup</string>
     <string name="setup_done_title">All set</string>
-    <string name="setup_done_summary">Shizuku connected · Accessibility service on</string>
     <string name="apm_title">Advanced Protection is on</string>
     <string name="apm_summary">Android turns the accessibility service off in this mode. Turn Advanced Protection off to use the automation.</string>
     <string name="shizuku" translatable="false">Shizuku</string>
@@ -52,15 +51,8 @@
     <string name="display_size_hint">Smallest width · Default %1$s dp</string>
     <string name="font_size_hint">Default %1$s</string>
     <string name="reset_default">Default</string>
-    <string name="more_title">More</string>
-    <string name="apps" translatable="false">Apps</string>
     <string name="history">History</string>
-    <string name="history_none">No entries yet</string>
-    <string name="add_tile">Add tile</string>
-    <string name="add_tile_summary">Comfort View in Quick Settings</string>
     <string name="advanced">Advanced</string>
-    <string name="advanced_summary">Setting, permissions, diagnostics</string>
-    <string name="tile_manual_hint">Pull down Quick Settings, tap the pencil and drag “%1$s” up.</string>
     <string name="tile_unavailable">The tile can’t be added here.</string>
     <string name="tile_added">Tile added</string>
     <string name="tile_exists">The tile is already there</string>
@@ -107,7 +99,6 @@
     <string name="adv_diagnostics">Diagnostics</string>
     <string name="adv_current_value">Current value</string>
     <string name="dns_title">Private DNS</string>
-    <string name="dns_unsupported">Needs Android 12 or newer</string>
     <string name="dns_summary_off">Automation off</string>
     <string name="dns_summary_setup">Setup incomplete · private DNS stays on</string>
     <string name="dns_state_home">Home (%1$s) · private DNS off</string>
@@ -147,4 +138,71 @@
         <item quantity="one">%1$s, %2$s and %3$d more</item>
         <item quantity="other">%1$s, %2$s and %3$d more</item>
     </plurals>
+    <string name="hide_mobile_title">Hide mobile signal on Wi‑Fi</string>
+    <string name="hide_mobile_summary_off">Hides the mobile signal icon while Wi‑Fi is connected</string>
+    <string name="hide_mobile_summary_on">On · hidden while Wi‑Fi is connected</string>
+    <string name="hide_mobile_needs_service">Only works while “%1$s” is on</string>
+    <string name="history_mobile_hidden">Mobile signal icon hidden (Wi‑Fi)</string>
+    <string name="history_mobile_hidden_failed">Couldn’t hide mobile signal icon</string>
+    <string name="history_mobile_shown">Mobile signal icon shown</string>
+    <string name="history_mobile_shown_failed">Couldn’t show mobile signal icon</string>
+    <string name="home_setup_needed">Setup incomplete</string>
+    <string name="display_summary">Display size and font size</string>
+    <string name="display_footer">Applied when you let go of a slider. If the screen becomes hard to use: adb shell wm density reset</string>
+    <string name="more_options">More options</string>
+    <string name="rotate_title">Auto-rotate</string>
+    <string name="rotate_apps_intro">The screen rotates with your phone in these apps. Everywhere else it keeps its previous setting. If you switch rotation yourself while one of them is open, your choice stays.</string>
+    <string name="rotate_summary_off">Only in the apps you choose</string>
+    <string name="rotate_summary_no_apps">On · tap to choose apps</string>
+    <string name="rotate_summary_on">On · in %1$s</string>
+    <string name="history_rotate_on">Auto-rotate on for %1$s</string>
+    <string name="history_rotate_on_failed">Couldn’t turn on auto-rotate for %1$s</string>
+    <string name="history_rotate_restore">Auto-rotate restored</string>
+    <string name="history_rotate_restore_failed">Couldn’t restore auto-rotate</string>
+    <string name="rotate_tile_label">Rotate in apps</string>
+    <string name="rotate_tile_no_apps">No apps chosen</string>
+    <plurals name="rotate_tile_apps">
+        <item quantity="one">In %1$d app</item>
+        <item quantity="other">In %1$d apps</item>
+    </plurals>
+    <string name="nfc_tile_label">NFC</string>
+    <string name="nfc_tile_on_secure">On · Secure</string>
+    <string name="nfc_tile_turning_on">Turning on…</string>
+    <string name="nfc_tile_turning_off">Turning off…</string>
+    <string name="nfc_tile_missing">No NFC</string>
+    <string name="add_tile_named">Add “%1$s” tile</string>
+    <string name="aod_title">Always-on display</string>
+    <string name="aod_automation">Automation</string>
+    <string name="aod_summary_off">Off · switches by Bluetooth device or Wi‑Fi</string>
+    <string name="aod_summary_no_rules">On · tap to add a rule</string>
+    <string name="aod_status_rule_on">On by rule · %1$s</string>
+    <string name="aod_status_rule_off">Off by rule · %1$s</string>
+    <string name="aod_status_baseline_on">No rule applies · your setting (on)</string>
+    <string name="aod_status_baseline_off">No rule applies · your setting (off)</string>
+    <string name="aod_status_overridden">Changed by hand · until the next change</string>
+    <string name="aod_status_missing_permission">Permission missing</string>
+    <string name="aod_rules_title">Rules</string>
+    <string name="aod_rules_footer">The topmost matching rule wins; drag the handle to reorder. If no rule matches, your own setting applies. If you switch the always-on display by hand, that stays until a device connects or disconnects or the Wi‑Fi changes.</string>
+    <string name="aod_rules_empty">No rules yet</string>
+    <string name="aod_add_rule">Add rule</string>
+    <string name="aod_edit_rule">Edit rule</string>
+    <string name="aod_action_on">Always-on display on</string>
+    <string name="aod_action_off">Always-on display off</string>
+    <string name="aod_type_bluetooth">Bluetooth</string>
+    <string name="aod_type_wifi">Wi‑Fi</string>
+    <string name="aod_no_bonded">No paired devices found.</string>
+    <string name="aod_ssid_label">Wi‑Fi name (SSID)</string>
+    <string name="aod_use_current_wifi">Use “%1$s”</string>
+    <string name="aod_delete">Delete</string>
+    <string name="aod_reorder">Reorder</string>
+    <string name="aod_allow">Allow</string>
+    <string name="aod_bluetooth_title">Detect Bluetooth devices</string>
+    <string name="aod_bluetooth_text">Needed to see which devices are connected. Never scans.</string>
+    <string name="aod_location_title">Read Wi‑Fi name</string>
+    <string name="aod_location_text">Android only reveals the Wi‑Fi name with the location permission. Your location is never used.</string>
+    <string name="history_aod_on">Always-on display on · %1$s</string>
+    <string name="history_aod_off">Always-on display off · %1$s</string>
+    <string name="history_aod_on_own">Always-on display on (your setting)</string>
+    <string name="history_aod_off_own">Always-on display off (your setting)</string>
+    <string name="history_aod_failed">Couldn’t switch the always-on display</string>
 </resources>

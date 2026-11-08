@@ -4,6 +4,8 @@ import java.util.Properties
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.androidx.baselineprofile)
 }
 
 // Release-Signing aus keystore.properties (nicht im VCS). Fehlt die Datei,
@@ -21,10 +23,10 @@ android {
 
     defaultConfig {
         applicationId = "com.noirdraco.pixelcomfort"
-        minSdk = 26
+        minSdk = 33
         targetSdk = 37
-        versionCode = 8
-        versionName = "1.7"
+        versionCode = 9
+        versionName = "2.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -42,11 +44,9 @@ android {
 
     buildTypes {
         release {
+            // Eigene Keep-Regeln liegen in src/main/keepRules/.
             optimization {
                 enable = true
-                keepRules {
-                    files.add(file("proguard-rules.pro"))
-                }
             }
             if (keystoreProps.isNotEmpty()) {
                 signingConfig = signingConfigs.getByName("release")
@@ -77,6 +77,12 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
+    // Spielt das Baseline-Profil auch bei installierten APKs (ohne Play Store) ein.
+    implementation(libs.androidx.profileinstaller)
+    "baselineProfile"(project(":macrobenchmark"))
+    implementation(libs.androidx.datastore)
+    implementation(libs.kotlinx.serialization.json)
+    implementation(libs.reorderable)
     implementation(libs.shizuku.api)
     implementation(libs.shizuku.provider)
     testImplementation(libs.junit)
@@ -86,4 +92,19 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
+}
+
+/*
+ * Mess-Varianten des Baseline-Profil-Plugins (benchmarkRelease, nonMinifiedRelease) laufen
+ * unter eigener App-ID: Gradle deinstalliert die App nach dem Messlauf wieder - mit der
+ * normalen ID waere das die eingerichtete PixelComfort samt Einstellungen.
+ * Signiert mit dem Debug-Schluessel, damit der Lauf ohne keystore.properties geht.
+ */
+androidComponents {
+    onVariants { variant ->
+        if (variant.buildType in setOf("benchmarkRelease", "nonMinifiedRelease")) {
+            variant.applicationId.set("com.noirdraco.pixelcomfort.benchmark")
+            variant.signingConfig.setConfig(android.signingConfigs.getByName("debug"))
+        }
+    }
 }

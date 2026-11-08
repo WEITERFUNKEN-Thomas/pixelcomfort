@@ -16,7 +16,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -32,6 +31,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -46,22 +46,39 @@ private class InstalledApps(val labels: Map<String, String>, val icons: Map<Stri
 /** Groesse, in der die App-Symbole gerastert werden (px). */
 private const val ICON_PX = 96
 
-/** Auswahl der Apps, in denen der Augenkomfort pausiert. Jede Aenderung gilt sofort. */
+/** Welche App-Auswahl die Seite bearbeitet. */
+internal enum class AppSelection(val title: Int, val intro: Int) {
+    COMFORT(R.string.comfort_title, R.string.apps_intro),
+    ROTATE(R.string.rotate_title, R.string.rotate_apps_intro),
+    ;
+
+    fun load(context: Context): Set<String> = when (this) {
+        COMFORT -> Prefs.getPackages(context)
+        ROTATE -> Prefs.getRotatePackages(context)
+    }
+
+    fun save(context: Context, packages: Set<String>) = when (this) {
+        COMFORT -> Prefs.setPackages(context, packages)
+        ROTATE -> Prefs.setRotatePackages(context, packages)
+    }
+}
+
+/** Auswahl der Apps fuer eine Funktion (Augenkomfort, Drehen). Jede Aenderung gilt sofort. */
 @Composable
-internal fun AppsScreen(onBack: () -> Unit) {
+internal fun AppsScreen(selection: AppSelection, onBack: () -> Unit) {
     val context = LocalContext.current
 
     var apps by remember { mutableStateOf<InstalledApps?>(null) }
-    var selected by remember { mutableStateOf(Prefs.getPackages(context)) }
+    var selected by remember { mutableStateOf(selection.load(context)) }
     // Auswahl beim Oeffnen: bestimmt, was oben steht (Zeilen springen beim Umschalten nicht).
-    val pinned = remember { Prefs.getPackages(context) }
+    val pinned = remember { selection.load(context) }
     var query by rememberSaveable { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
         thread { apps = loadInstalledApps(context.applicationContext) }
     }
 
-    SettingsScaffold(title = stringResource(R.string.apps), onBack = onBack) { padding ->
+    SettingsScaffold(title = stringResource(selection.title), onBack = onBack) { padding ->
         val loaded = apps
         if (loaded == null) {
             Box(Modifier.fillMaxSize().padding(padding).padding(horizontal = PagePadding)) {
@@ -72,11 +89,11 @@ internal fun AppsScreen(onBack: () -> Unit) {
         val entries = AppList.build(loaded.labels, selected, pinned, query)
 
         LazyColumn(
-            modifier = Modifier.fillMaxSize().padding(padding),
+            modifier = Modifier.fillMaxSize().padding(padding).testTag("apps_list"),
             contentPadding = PaddingValues(start = PagePadding, end = PagePadding, bottom = 24.dp),
         ) {
             item(key = "intro") {
-                GroupFooter(stringResource(R.string.apps_intro))
+                GroupFooter(stringResource(selection.intro))
                 Spacer(Modifier.height(16.dp))
                 SearchField(query, onChange = { query = it })
                 Spacer(Modifier.height(16.dp))
@@ -87,7 +104,7 @@ internal fun AppsScreen(onBack: () -> Unit) {
             itemsIndexed(entries, key = { _, e -> e.packageName }) { index, entry ->
                 val toggle = { on: Boolean ->
                     selected = AppList.toggle(selected, entry.packageName, on)
-                    Prefs.setPackages(context, selected)
+                    selection.save(context, selected)
                 }
                 SettingsRow(
                     title = entry.label,
@@ -95,7 +112,7 @@ internal fun AppsScreen(onBack: () -> Unit) {
                     shape = rowShape(index, entries.size),
                     onClick = { toggle(!entry.selected) },
                     leading = { AppIcon(loaded.icons[entry.packageName]) },
-                    trailing = { Switch(checked = entry.selected, onCheckedChange = toggle) },
+                    trailing = { PixelSwitch(checked = entry.selected, onCheckedChange = toggle) },
                 )
                 Spacer(Modifier.height(RowGap))
             }
@@ -127,8 +144,8 @@ private fun SearchField(query: String, onChange: (String) -> Unit) {
         singleLine = true,
         shape = CircleShape,
         colors = TextFieldDefaults.colors(
-            focusedContainerColor = MaterialTheme.colorScheme.surfaceBright,
-            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceBright,
+            focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
             focusedIndicatorColor = Color.Transparent,
             unfocusedIndicatorColor = Color.Transparent,
         ),

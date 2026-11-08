@@ -20,10 +20,13 @@ class SetupStatusTest {
         notificationsAllowed = true,
         lastEntry = null,
         dns = DnsStatus(
-            supported = true, enabled = false, hostname = "", homeSsids = emptySet(),
+            enabled = false, hostname = "", homeSsids = emptySet(),
             mode = null, specifier = null, network = null, locationPermission = false,
             locationOn = false, writeSecure = true, serviceEnabled = true,
         ),
+        hideMobileOnWifi = false,
+        rotateEnabled = false,
+        rotateLabels = emptyList(),
     )
 
     @Test

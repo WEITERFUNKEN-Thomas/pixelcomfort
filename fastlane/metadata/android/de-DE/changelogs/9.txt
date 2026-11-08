@@ -1,0 +1,6 @@
+• Neue Oberfläche: die Startseite zeigt eine Karte pro Funktion
+• Neu: Mobilfunk-Symbol ausblenden, solange WLAN verbunden ist
+• Neu: Automatisch drehen nur in ausgewählten Apps, mit Kachel
+• Neu: Always-On-Display je nach Bluetooth-Gerät oder WLAN
+• Neu: Schnelleinstellungs-Kachel für NFC
+• Braucht jetzt Android 13 oder neuer

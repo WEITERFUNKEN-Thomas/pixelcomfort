@@ -2,7 +2,7 @@ package com.noirdraco.pixelcomfort
 
 /**
  * Die Entscheidungen der DNS-Automatik, ohne Android-Abhaengigkeit (damit per Unit-Test
- * pruefbar). Der [DnsWatcher] liefert die Netzwechsel, [PrivateDns] die echte Umgebung.
+ * pruefbar). Der [NetworkWatcher] liefert die Netzwechsel, [PrivateDns] die echte Umgebung.
  *
  * Regeln:
  * - Zu Hause (gesichertes WLAN aus der Liste): privates DNS aus, damit das Heimnetz-DNS
@@ -22,8 +22,17 @@ class DnsAutomation(private val env: Env) {
         UNKNOWN,
     }
 
-    /** Das aktive Standard-Netz; null = kein Netz. */
-    data class Network(val isWifi: Boolean, val ssid: String?, val security: Security)
+    /**
+     * Das aktive Standard-Netz; null = kein Netz.
+     * @param isWifi WLAN mit lesbaren WLAN-Infos (fuer die Heim-Erkennung)
+     * @param wifiTransport laeuft ueber WLAN - auch hinter einem VPN, wo die WLAN-Infos fehlen
+     */
+    data class Network(
+        val isWifi: Boolean,
+        val ssid: String?,
+        val security: Security,
+        val wifiTransport: Boolean = isWifi,
+    )
 
     interface Env {
         val enabled: Boolean

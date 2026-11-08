@@ -10,7 +10,8 @@ import android.provider.Settings
 import android.text.TextUtils
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
-import com.noirdraco.pixelcomfort.ComfortAutomation.Event
+import com.noirdraco.pixelcomfort.AppRuleAutomation.Event
+import com.noirdraco.pixelcomfort.aod.AodMonitor
 import rikka.shizuku.Shizuku
 
 /**
@@ -18,7 +19,7 @@ import rikka.shizuku.Shizuku
  * Vordergrund kommt, wird der aktuelle Comfort-View-Wert des Systems gemerkt und auf
  * AUS gesetzt. Beim Wechsel zu einer anderen App wird der gemerkte Wert exakt wieder
  * hergestellt. Andere Einstellungen werden nicht angefasst. Die Entscheidungen selbst
- * stehen in [ComfortAutomation].
+ * stehen in [AppRuleAutomation].
  *
  * Beim (Neu-)Verbinden des Dienstes wird bewusst NICHTS geschrieben: Ohne
  * canRetrieveWindowContent laesst sich die Vordergrund-App hier nicht ermitteln, und
@@ -33,7 +34,10 @@ import rikka.shizuku.Shizuku
 class ComfortAccessibilityService : AccessibilityService() {
 
     private val main = Handler(Looper.getMainLooper())
-    private val automation = ComfortAutomation(ServiceEnv())
+    private val automation = AppRuleAutomation(ServiceEnv())
+
+    /** Eigene Instanz, damit sie sich ueber App-Wechsel merkt, was schon gemeldet ist. */
+    private val rotation by lazy { AutoRotate.automation(this) }
 
     private val startupCheck = Runnable { ShizukuWarning.check(this) }
 
@@ -53,25 +57,38 @@ class ComfortAccessibilityService : AccessibilityService() {
         main.postDelayed(startupCheck, STARTUP_CHECK_DELAY_MS)
         // Das System meldet sofort das aktuelle Netz; die DNS-Automatik stimmt sich
         // dann selbst ab (Schreiben beim Verbinden ist hier richtig, s. DnsAutomation).
-        DnsWatcher.start(this)
+        NetworkWatcher.start(this)
+        // Always-On-Display-Regeln (Bluetooth/WLAN) laufen in diesem Dienst mit.
+        AodMonitor.start(this)
     }
 
     /**
      * Die Bedienungshilfe wird abgeschaltet: privates DNS darf dann nicht ausgeschaltet
      * zurueckbleiben, sonst waere es unterwegs aus, ohne dass jemand es wieder eintraegt.
+     * Ebenso kommen das Mobilfunk-Symbol und der vorherige Dreh-Zustand zurueck. DNS
+     * zuerst - es ist sicherheitsrelevant.
      */
     override fun onUnbind(intent: Intent?): Boolean {
-        DnsWatcher.stop()
-        if (Prefs.getDnsEnabled(this)) {
-            val ctx = applicationContext
-            SettingsWorker.submitAndWait(UNBIND_TIMEOUT_MS) { PrivateDns.automation(ctx).ensureAway() }
+        NetworkWatcher.stop()
+        val ctx = applicationContext
+        val dns = Prefs.getDnsEnabled(ctx)
+        val icon = Prefs.getHideMobileOnWifi(ctx)
+        val rotate = Prefs.getRotateActive(ctx)
+        if (dns || icon || rotate) {
+            SettingsWorker.submitAndWait(UNBIND_TIMEOUT_MS) {
+                if (dns) PrivateDns.automation(ctx).ensureAway()
+                if (icon) MobileIcon.automation(ctx).ensureShown()
+                if (rotate) rotation.release()
+            }
         }
+        AodMonitor.stopAndRestore(ctx, UNBIND_TIMEOUT_MS)
         return super.onUnbind(intent)
     }
 
     override fun onDestroy() {
         main.removeCallbacks(startupCheck)
-        DnsWatcher.stop()
+        AodMonitor.stop()
+        NetworkWatcher.stop()
         runCatching { Shizuku.removeBinderReceivedListener(shizukuConnected) }
         super.onDestroy()
     }
@@ -80,6 +97,7 @@ class ComfortAccessibilityService : AccessibilityService() {
         if (event == null || event.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
         val pkg = event.packageName?.toString()
         if (pkg.isNullOrBlank()) return
+        Log.d(TAG, "Fenster: $pkg / ${event.className}")
         // Overlays wie Benachrichtigungs-Shade / Tastatur / Dialoge / eigene App
         // ignorieren, damit sie ueber der Kamera keine vorzeitige Wiederherstellung
         // ausloesen.
@@ -91,21 +109,26 @@ class ComfortAccessibilityService : AccessibilityService() {
         // SettingsWorker ist prozessweit und wird mit der Kachel geteilt, damit
         // Automatik und manuelles Umschalten sich nicht ueberholen.
         SettingsWorker.submit { automation.onForeground(pkg, isTarget) }
+
+        if (Prefs.getRotateEnabled(this)) {
+            val rotateHere = pkg in Prefs.getRotatePackages(this)
+            SettingsWorker.submit { rotation.onForeground(pkg, rotateHere) }
+        }
     }
 
     /** Die echte Umgebung der Automatik: Settings, gemerkter Zustand, Log, Verlauf, Warnung. */
-    private inner class ServiceEnv : ComfortAutomation.Env {
+    private inner class ServiceEnv : AppRuleAutomation.Env {
         private val ctx: Context get() = this@ComfortAccessibilityService
         private val ns get() = Prefs.getNamespace(ctx)
         private val key get() = Prefs.getKey(ctx)
 
-        override val offValue: String get() = Prefs.getOff(ctx)
+        override val forcedValue: String get() = Prefs.getOff(ctx)
 
         override fun read(): String? = SettingWriter.read(ctx, ns, key)
 
-        override fun write(value: String): ComfortAutomation.Outcome {
+        override fun write(value: String): AppRuleAutomation.Outcome {
             val res = SettingWriter.write(ctx, ns, key, value)
-            return ComfortAutomation.Outcome(res.success, "via ${res.method}: ${res.message}")
+            return AppRuleAutomation.Outcome(res.success, "via ${res.method}: ${res.message}")
         }
 
         override fun isSuppressed(): Boolean = Prefs.getSuppressed(ctx)
@@ -114,13 +137,13 @@ class ComfortAccessibilityService : AccessibilityService() {
             Prefs.setSuppressed(ctx, suppressed, savedValue)
 
         override fun report(event: Event) {
-            val off = offValue
+            val off = forcedValue
             val now = System.currentTimeMillis()
             val entry = when (event) {
-                is Event.Paused -> {
+                is Event.Forced -> {
                     Log.i(TAG, "Ziel-App '${event.pkg}' -> $ns/$key AUS (gemerkt=${event.from}) ok=${event.success} ${event.message}")
                     History.Entry(
-                        now, History.Kind.PAUSE, label(event.pkg),
+                        now, History.Kind.PAUSE, ctx.appLabel(event.pkg),
                         from = History.comfortToken(event.from, off),
                         to = History.OFF,
                         success = event.success,
@@ -131,7 +154,7 @@ class ComfortAccessibilityService : AccessibilityService() {
                 is Event.Skipped -> {
                     Log.w(TAG, "Ziel-App '${event.pkg}' -> $ns/$key nicht lesbar, es wird NICHT pausiert")
                     History.Entry(
-                        now, History.Kind.SKIP, label(event.pkg),
+                        now, History.Kind.SKIP, ctx.appLabel(event.pkg),
                         success = false,
                         message = ShizukuShell.explain(History.Reason.UNREADABLE),
                     )
@@ -151,10 +174,6 @@ class ComfortAccessibilityService : AccessibilityService() {
             HistoryStore.add(ctx, entry)
             if (!entry.success) ShizukuWarning.check(ctx)
         }
-
-        private fun label(pkg: String): String =
-            runCatching { packageManager.getApplicationInfo(pkg, 0).loadLabel(packageManager).toString() }
-                .getOrDefault(pkg)
     }
 
     /**

@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -60,7 +61,7 @@ internal fun ScaleGroup(refreshKey: Int, onResult: (DisplayScale.Result) -> Unit
         }
     }
 
-    SettingsGroup(stringResource(R.string.display_title)) {
+    SettingsGroup {
         val s = state
 
         // ---- Anzeigegroesse (kleinste Breite) ----
@@ -129,11 +130,13 @@ private fun ScaleItem(
                 maxLines = 1,
             )
         }
+        // Der Wert kommt von aussen (Einstellung bzw. Entwurf), der Zustand folgt ihm nur.
+        val state = remember(range) { SliderState(sliderValue, trackRange = range) }
+        state.value = sliderValue
         Slider(
-            value = sliderValue,
+            state = state,
             onValueChange = onChange,
             onValueChangeFinished = onFinished,
-            valueRange = range,
             enabled = enabled,
         )
         Row(

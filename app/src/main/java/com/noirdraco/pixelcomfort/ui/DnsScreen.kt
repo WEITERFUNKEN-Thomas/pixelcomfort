@@ -38,7 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import com.noirdraco.pixelcomfort.DnsAutomation
 import com.noirdraco.pixelcomfort.DnsStatus
-import com.noirdraco.pixelcomfort.DnsWatcher
+import com.noirdraco.pixelcomfort.NetworkWatcher
 import com.noirdraco.pixelcomfort.Prefs
 import com.noirdraco.pixelcomfort.PrivateDns
 import com.noirdraco.pixelcomfort.R
@@ -79,9 +79,9 @@ internal fun DnsScreen(refreshKey: Int, onRefresh: () -> Unit, onBack: () -> Uni
      * er neue Berechtigungen mitbekommt.
      */
     fun apply() {
-        DnsWatcher.restart()
+        NetworkWatcher.restart()
         SettingsWorker.submit {
-            PrivateDns.automation(app).onNetwork(DnsWatcher.current(app))
+            PrivateDns.automation(app).onNetwork(NetworkWatcher.current(app))
             onRefresh()
         }
     }
@@ -106,19 +106,18 @@ internal fun DnsScreen(refreshKey: Int, onRefresh: () -> Unit, onBack: () -> Uni
             val suggested = s?.hostname?.ifEmpty { s.specifier?.takeIf(DnsAutomation::isValidHostname).orEmpty() }
             val draft = hostnameDraft ?: suggested.orEmpty()
             val draftValid = DnsAutomation.isValidHostname(draft.trim())
-            val canEnable = s != null && s.supported && s.homeSsids.isNotEmpty() && draftValid
+            val canEnable = s != null && s.homeSsids.isNotEmpty() && draftValid
 
             MainSwitch(
                 title = stringResource(R.string.dns_switch_title),
                 summary = when {
                     s == null -> stringResource(R.string.loading)
-                    !s.supported -> stringResource(R.string.dns_unsupported)
                     s.enabled -> dnsStateText(res, s)
                     canEnable -> stringResource(R.string.dns_switch_hint)
                     else -> stringResource(R.string.dns_switch_needs)
                 },
                 checked = when {
-                    s == null || !s.supported -> null
+                    s == null -> null
                     s.enabled -> true
                     canEnable -> false
                     else -> null
@@ -127,20 +126,12 @@ internal fun DnsScreen(refreshKey: Int, onRefresh: () -> Unit, onBack: () -> Uni
                     if (on) {
                         Prefs.setDnsHostname(app, draft.trim())
                         hostnameDraft = null
-                        Prefs.setDnsEnabled(app, true)
-                        apply()
-                    } else {
-                        Prefs.setDnsEnabled(app, false)
-                        // Nicht ausgeschaltet zurueckbleiben lassen.
-                        SettingsWorker.submit {
-                            PrivateDns.automation(app).ensureAway()
-                            onRefresh()
-                        }
                     }
+                    setDnsAutomation(app, on, onRefresh)
                 },
             )
 
-            if (s == null || !s.supported) return@Column
+            if (s == null) return@Column
 
             if (!s.setupComplete) SetupRows(s, context, res, ::say, onRefresh = ::apply, askLocation = {
                 askLocation.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
@@ -277,6 +268,21 @@ private fun AddCurrentRow(s: DnsStatus, onAdd: (String) -> Unit) {
             null
         },
     )
+}
+
+/**
+ * DNS-Automatik ein- oder ausschalten - gemeinsam fuer Startseite und DNS-Seite.
+ * Ein: sofort auf das aktuelle Netz anwenden und den Beobachter neu registrieren.
+ * Aus: privates DNS eintragen, damit es nicht ausgeschaltet zurueckbleibt.
+ */
+internal fun setDnsAutomation(app: Context, on: Boolean, onDone: () -> Unit) {
+    Prefs.setDnsEnabled(app, on)
+    if (on) NetworkWatcher.restart()
+    SettingsWorker.submit {
+        val automation = PrivateDns.automation(app)
+        if (on) automation.onNetwork(NetworkWatcher.current(app)) else automation.ensureAway()
+        onDone()
+    }
 }
 
 private fun openAppSettings(context: Context) {

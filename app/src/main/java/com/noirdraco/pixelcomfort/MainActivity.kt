@@ -11,7 +11,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import com.noirdraco.pixelcomfort.ui.AdvancedScreen
+import com.noirdraco.pixelcomfort.ui.AodScreen
+import com.noirdraco.pixelcomfort.ui.AppSelection
 import com.noirdraco.pixelcomfort.ui.AppsScreen
+import com.noirdraco.pixelcomfort.ui.DisplayScreen
 import com.noirdraco.pixelcomfort.ui.DnsScreen
 import com.noirdraco.pixelcomfort.ui.HistoryScreen
 import com.noirdraco.pixelcomfort.ui.HomeScreen
@@ -35,7 +38,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             PixelComfortTheme {
-                // Fuenf Seiten - dafuer braucht es keine Navigations-Bibliothek.
+                // Acht Seiten - dafuer braucht es keine Navigations-Bibliothek.
                 var screen by rememberSaveable { mutableStateOf(Screen.HOME) }
                 val onRefresh: () -> Unit = { refresh.intValue++ }
                 val toHome: () -> Unit = {
@@ -50,9 +53,12 @@ class MainActivity : ComponentActivity() {
                         refreshKey = refresh.intValue,
                         onRefresh = onRefresh,
                         onOpenApps = { screen = Screen.APPS },
+                        onOpenRotateApps = { screen = Screen.ROTATE_APPS },
                         onOpenAdvanced = { screen = Screen.ADVANCED },
                         onOpenHistory = { screen = Screen.HISTORY },
                         onOpenDns = { screen = Screen.DNS },
+                        onOpenDisplay = { screen = Screen.DISPLAY },
+                        onOpenAod = { screen = Screen.AOD },
                     )
 
                     Screen.HISTORY -> HistoryScreen(
@@ -60,9 +66,23 @@ class MainActivity : ComponentActivity() {
                         onBack = toHome,
                     )
 
-                    Screen.APPS -> AppsScreen(onBack = toHome)
+                    Screen.APPS -> AppsScreen(AppSelection.COMFORT, onBack = toHome)
+
+                    Screen.ROTATE_APPS -> AppsScreen(AppSelection.ROTATE, onBack = toHome)
 
                     Screen.DNS -> DnsScreen(
+                        refreshKey = refresh.intValue,
+                        onRefresh = onRefresh,
+                        onBack = toHome,
+                    )
+
+                    Screen.AOD -> AodScreen(
+                        refreshKey = refresh.intValue,
+                        onRefresh = onRefresh,
+                        onBack = toHome,
+                    )
+
+                    Screen.DISPLAY -> DisplayScreen(
                         refreshKey = refresh.intValue,
                         onRefresh = onRefresh,
                         onBack = toHome,
@@ -91,7 +111,7 @@ class MainActivity : ComponentActivity() {
         super.onDestroy()
     }
 
-    private enum class Screen { HOME, APPS, DNS, HISTORY, ADVANCED }
+    private enum class Screen { HOME, APPS, ROTATE_APPS, DNS, AOD, HISTORY, DISPLAY, ADVANCED }
 
     companion object {
         const val SHIZUKU_REQUEST_CODE = 1001

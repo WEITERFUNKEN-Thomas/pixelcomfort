@@ -65,15 +65,11 @@ object ShizukuShell {
      * Shizuku.newProcess ist als @hide/@Deprecated markiert (Entfernung ab API 14
      * geplant), daher der Zugriff per Reflection.
      */
-    fun run(vararg args: String): ShellResult {
-        val method = Shizuku::class.java.getDeclaredMethod(
-            "newProcess",
-            Array<String>::class.java,
-            Array<String>::class.java,
-            String::class.java,
-        )
-        method.isAccessible = true
-        val process = method.invoke(null, arrayOf(*args), null, null) as ShizukuRemoteProcess
+    fun run(vararg args: String): ShellResult = run(TIMEOUT_MS, *args)
+
+    /** Wie [run], mit eigener Obergrenze. */
+    fun run(timeoutMs: Long, vararg args: String): ShellResult {
+        val process = spawn(*args)
 
         // stdout und stderr parallel lesen: Nacheinander gelesen koennte ein volles
         // stderr-Puffer den Prozess blockieren, waehrend wir noch auf stdout warten.
@@ -92,13 +88,28 @@ object ShizukuShell {
         // IllegalThreadStateException - ueber Binder kommt aber ein anderer Typ an,
         // die Schleife bricht mit "process hasn't exited" ab. waitForTimeout wartet
         // stattdessen serverseitig.
-        if (!process.waitForTimeout(TIMEOUT_MS, TimeUnit.MILLISECONDS)) {
+        if (!process.waitForTimeout(timeoutMs, TimeUnit.MILLISECONDS)) {
             // Zerstoeren schliesst auch die Streams, damit enden die Leser-Threads.
             process.destroy()
             readers.forEach { it.join(500) }
-            throw TimeoutException("Shizuku-Aufruf nach $TIMEOUT_MS ms abgebrochen: ${args.joinToString(" ")}")
+            throw TimeoutException("Shizuku-Aufruf nach $timeoutMs ms abgebrochen: ${args.joinToString(" ")}")
         }
-        readers.forEach { it.join(TIMEOUT_MS) }
+        readers.forEach { it.join(timeoutMs) }
         return ShellResult(process.exitValue(), out.toString().trim(), err.toString().trim())
+    }
+
+    /**
+     * Startet [args] als Prozess mit Shell-Rechten und wartet nicht; [run] wartet darauf.
+     * Shizuku beendet den Prozess, wenn unsere App stirbt.
+     */
+    fun spawn(vararg args: String): ShizukuRemoteProcess {
+        val method = Shizuku::class.java.getDeclaredMethod(
+            "newProcess",
+            Array<String>::class.java,
+            Array<String>::class.java,
+            String::class.java,
+        )
+        method.isAccessible = true
+        return method.invoke(null, arrayOf(*args), null, null) as ShizukuRemoteProcess
     }
 }

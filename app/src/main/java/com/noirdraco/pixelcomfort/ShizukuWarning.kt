@@ -8,7 +8,6 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.os.Build
 import android.util.Log
 
 /**
@@ -31,8 +30,7 @@ object ShizukuWarning {
 
     /** Darf die App ueberhaupt Benachrichtigungen zeigen? */
     fun allowed(context: Context): Boolean {
-        val granted = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
-            context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) ==
+        val granted = context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) ==
             PackageManager.PERMISSION_GRANTED
         return granted && manager(context).areNotificationsEnabled()
     }

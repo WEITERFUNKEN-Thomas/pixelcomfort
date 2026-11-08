@@ -1,25 +1,27 @@
 package com.noirdraco.pixelcomfort
 
-import com.noirdraco.pixelcomfort.ComfortAutomation.Event
-import com.noirdraco.pixelcomfort.ComfortAutomation.Outcome
+import com.noirdraco.pixelcomfort.AppRuleAutomation.Event
+import com.noirdraco.pixelcomfort.AppRuleAutomation.Outcome
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
-class ComfortAutomationTest {
+class AppRuleAutomationTest {
 
     /** Ein "Geraet" im Speicher: eine Einstellung, die sich lesen/schreiben laesst - oder nicht. */
-    private class FakeEnv(var value: String?) : ComfortAutomation.Env {
-        override val offValue = "0"
+    private class FakeEnv(var value: String?, override val forcedValue: String = "0") : AppRuleAutomation.Env {
         var reachable = true
         var suppressed = false
         var saved: String? = null
         val events = mutableListOf<Event>()
         val writes = mutableListOf<String>()
 
-        override fun read(): String? = if (reachable) value else null
+        /** Nur das Lesen scheitert (Schreiben geht, z. B. ueber den ContentResolver). */
+        var unreadable = false
+
+        override fun read(): String? = if (reachable && !unreadable) value else null
 
         override fun write(value: String): Outcome {
             if (!reachable) return Outcome(false, "Shizuku nicht verfuegbar")
@@ -42,22 +44,23 @@ class ComfortAutomationTest {
 
     private val camera = "com.google.android.GoogleCamera"
     private val launcher = "com.google.android.apps.nexuslauncher"
+    private val youtube = "com.google.android.youtube"
 
     @Test
     fun `Ziel-App schaltet aus und merkt sich den vorherigen Wert`() {
         val env = FakeEnv("1")
-        ComfortAutomation(env).onForeground(camera, isTarget = true)
+        AppRuleAutomation(env).onForeground(camera, isTarget = true)
 
         assertEquals("0", env.value)
         assertTrue(env.suppressed)
         assertEquals("1", env.saved)
-        assertEquals(listOf<Event>(Event.Paused(camera, from = "1", success = true, message = "ok")), env.events)
+        assertEquals(listOf<Event>(Event.Forced(camera, from = "1", success = true, message = "ok")), env.events)
     }
 
     @Test
     fun `Verlassen der Ziel-App stellt den gemerkten Wert wieder her`() {
         val env = FakeEnv("1")
-        val automation = ComfortAutomation(env)
+        val automation = AppRuleAutomation(env)
         automation.onForeground(camera, isTarget = true)
         automation.onForeground(launcher, isTarget = false)
 
@@ -70,7 +73,7 @@ class ComfortAutomationTest {
     @Test
     fun `war der Filter schon aus, passiert gar nichts`() {
         val env = FakeEnv("0")
-        val automation = ComfortAutomation(env)
+        val automation = AppRuleAutomation(env)
         automation.onForeground(camera, isTarget = true)
         automation.onForeground(launcher, isTarget = false)
 
@@ -83,7 +86,7 @@ class ComfortAutomationTest {
     @Test
     fun `zweite Ziel-App in Folge schreibt nicht noch einmal`() {
         val env = FakeEnv("1")
-        val automation = ComfortAutomation(env)
+        val automation = AppRuleAutomation(env)
         automation.onForeground(camera, isTarget = true)
         automation.onForeground("com.google.android.apps.photos", isTarget = true)
 
@@ -94,7 +97,7 @@ class ComfortAutomationTest {
     @Test
     fun `nicht lesbarer Wert - es wird nicht pausiert und nichts gemerkt`() {
         val env = FakeEnv("1").apply { reachable = false }
-        ComfortAutomation(env).onForeground(camera, isTarget = true)
+        AppRuleAutomation(env).onForeground(camera, isTarget = true)
 
         assertFalse(env.suppressed)
         assertNull(env.saved)
@@ -105,7 +108,7 @@ class ComfortAutomationTest {
     fun `mehrere Fenster-Events derselben Ziel-App melden das Ueberspringen nur einmal`() {
         // Ein App-Start liefert oft mehrere TYPE_WINDOW_STATE_CHANGED (Splash, Activity).
         val env = FakeEnv("1").apply { reachable = false }
-        val automation = ComfortAutomation(env)
+        val automation = AppRuleAutomation(env)
         automation.onForeground(camera, isTarget = true)
         automation.onForeground(camera, isTarget = true)
 
@@ -115,7 +118,7 @@ class ComfortAutomationTest {
     @Test
     fun `nach einem App-Wechsel wird erneutes Ueberspringen wieder gemeldet`() {
         val env = FakeEnv("1").apply { reachable = false }
-        val automation = ComfortAutomation(env)
+        val automation = AppRuleAutomation(env)
         automation.onForeground(camera, isTarget = true)
         automation.onForeground(launcher, isTarget = false)
         automation.onForeground(camera, isTarget = true)
@@ -127,7 +130,7 @@ class ComfortAutomationTest {
     fun `Wechsel zwischen zwei Ziel-Apps meldet beide`() {
         val photos = "com.google.android.apps.photos"
         val env = FakeEnv("1").apply { reachable = false }
-        val automation = ComfortAutomation(env)
+        val automation = AppRuleAutomation(env)
         automation.onForeground(camera, isTarget = true)
         automation.onForeground(photos, isTarget = true)
 
@@ -138,7 +141,7 @@ class ComfortAutomationTest {
     fun `nach uebersprungenem Pausieren wird beim Verlassen nichts eingeschaltet`() {
         // Der alte Fehler: Filter war aus, Shizuku weg -> "1" gemerkt -> spaeter eingeschaltet.
         val env = FakeEnv("0").apply { reachable = false }
-        val automation = ComfortAutomation(env)
+        val automation = AppRuleAutomation(env)
         automation.onForeground(camera, isTarget = true)
         env.reachable = true
         automation.onForeground(launcher, isTarget = false)
@@ -150,7 +153,7 @@ class ComfortAutomationTest {
     @Test
     fun `scheitert das Wiederherstellen, bleibt der gemerkte Wert erhalten`() {
         val env = FakeEnv("1")
-        val automation = ComfortAutomation(env)
+        val automation = AppRuleAutomation(env)
         automation.onForeground(camera, isTarget = true)
         env.reachable = false
         automation.onForeground(launcher, isTarget = false)
@@ -166,7 +169,7 @@ class ComfortAutomationTest {
     @Test
     fun `gescheitertes Wiederherstellen wird beim naechsten App-Wechsel nachgeholt`() {
         val env = FakeEnv("1")
-        val automation = ComfortAutomation(env)
+        val automation = AppRuleAutomation(env)
         automation.onForeground(camera, isTarget = true)
         env.reachable = false
         automation.onForeground(launcher, isTarget = false)
@@ -181,7 +184,7 @@ class ComfortAutomationTest {
     @Test
     fun `wiederholtes Scheitern wird nur einmal gemeldet`() {
         val env = FakeEnv("1")
-        val automation = ComfortAutomation(env)
+        val automation = AppRuleAutomation(env)
         automation.onForeground(camera, isTarget = true)
         env.reachable = false
         automation.onForeground(launcher, isTarget = false)
@@ -194,7 +197,7 @@ class ComfortAutomationTest {
     @Test
     fun `Rueckkehr in die Ziel-App nach gescheitertem Wiederherstellen behaelt den gemerkten Wert`() {
         val env = FakeEnv("1")
-        val automation = ComfortAutomation(env)
+        val automation = AppRuleAutomation(env)
         automation.onForeground(camera, isTarget = true)
         env.reachable = false
         automation.onForeground(launcher, isTarget = false)
@@ -208,24 +211,91 @@ class ComfortAutomationTest {
 
     @Test
     fun `scheitert das Ausschalten, wird das gemeldet`() {
-        val env = object : ComfortAutomation.Env by FakeEnv("1") {
+        val env = object : AppRuleAutomation.Env by FakeEnv("1") {
             override fun write(value: String) = Outcome(false, "kaputt")
         }
         val events = mutableListOf<Event>()
-        val recording = object : ComfortAutomation.Env by env {
+        val recording = object : AppRuleAutomation.Env by env {
             override fun report(event: Event) {
                 events += event
             }
         }
-        ComfortAutomation(recording).onForeground(camera, isTarget = true)
+        AppRuleAutomation(recording).onForeground(camera, isTarget = true)
 
-        assertEquals(listOf<Event>(Event.Paused(camera, from = "1", success = false, message = "kaputt")), events)
+        assertEquals(listOf<Event>(Event.Forced(camera, from = "1", success = false, message = "kaputt")), events)
     }
 
     @Test
     fun `ohne aktive Pause loest eine normale App nichts aus`() {
         val env = FakeEnv("1")
-        ComfortAutomation(env).onForeground(launcher, isTarget = false)
+        AppRuleAutomation(env).onForeground(launcher, isTarget = false)
+
+        assertTrue(env.writes.isEmpty())
+        assertTrue(env.events.isEmpty())
+    }
+
+    // ---- Automatisch drehen: in der Ziel-App AN statt aus ----
+
+    @Test
+    fun `mit Wert an wird in der Ziel-App eingeschaltet und danach wieder aus`() {
+        val env = FakeEnv("0", forcedValue = "1")
+        val automation = AppRuleAutomation(env)
+        automation.onForeground(youtube, isTarget = true)
+        assertEquals("1", env.value)
+
+        automation.onForeground(launcher, isTarget = false)
+        assertEquals("0", env.value)
+    }
+
+    // ---- Hand-Entscheidung waehrend die Ziel-App vorn ist ----
+
+    @Test
+    fun `von Hand umgestellt in der Ziel-App - beim Verlassen wird nichts zurueckgeschrieben`() {
+        val env = FakeEnv("0", forcedValue = "1")
+        val automation = AppRuleAutomation(env)
+        automation.onForeground(youtube, isTarget = true)
+        // In YouTube ueber die Schnelleinstellungen wieder auf Hochformat gestellt.
+        env.value = "0"
+        env.writes.clear()
+
+        automation.onForeground(launcher, isTarget = false)
+
+        assertTrue(env.writes.isEmpty())
+        assertFalse(env.suppressed)
+        assertNull(env.saved)
+    }
+
+    @Test
+    fun `nicht lesbar beim Verlassen - es wird trotzdem versucht zurueckzuschreiben`() {
+        val env = FakeEnv("1")
+        val automation = AppRuleAutomation(env)
+        automation.onForeground(camera, isTarget = true)
+        env.unreadable = true
+
+        automation.onForeground(launcher, isTarget = false)
+
+        assertEquals("1", env.value)
+        assertFalse(env.suppressed)
+    }
+
+    // ---- Funktion abgeschaltet, waehrend die Ziel-App vorn ist ----
+
+    @Test
+    fun `release stellt den gemerkten Wert sofort wieder her`() {
+        val env = FakeEnv("0", forcedValue = "1")
+        val automation = AppRuleAutomation(env)
+        automation.onForeground(youtube, isTarget = true)
+
+        automation.release()
+
+        assertEquals("0", env.value)
+        assertFalse(env.suppressed)
+    }
+
+    @Test
+    fun `release ohne aktive Regel schreibt nichts`() {
+        val env = FakeEnv("0", forcedValue = "1")
+        AppRuleAutomation(env).release()
 
         assertTrue(env.writes.isEmpty())
         assertTrue(env.events.isEmpty())
