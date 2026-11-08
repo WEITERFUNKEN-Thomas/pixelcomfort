@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Handler
 import android.os.Looper
+import android.os.SystemClock
 import android.provider.Settings
 import android.text.TextUtils
 import android.util.Log
@@ -41,8 +42,14 @@ class ComfortAccessibilityService : AccessibilityService() {
 
     private val startupCheck = Runnable { ShizukuWarning.check(this) }
 
-    /** "pkg/Klasse" -> echter App-Wechsel? Nur Main-Thread. */
-    private val switchCache = HashMap<String, Boolean>()
+    /** Filtert spaete Fenster schon verlassener Apps ([WindowSwitch]). Nur Main-Thread. */
+    private val windowSwitch = WindowSwitch()
+
+    /** Package -> fuer uns sichtbar? Nur Main-Thread. */
+    private val visibleCache = HashMap<String, Boolean>()
+
+    /** "pkg/Klasse" -> ist eine Activity? Nur Main-Thread. */
+    private val activityCache = HashMap<String, Boolean>()
 
     private val shizukuConnected = Shizuku.OnBinderReceivedListener {
         if (ShizukuShell.isReady()) ShizukuWarning.clear(this)
@@ -105,8 +112,9 @@ class ComfortAccessibilityService : AccessibilityService() {
         // ignorieren, damit sie ueber der Kamera keine vorzeitige Wiederherstellung
         // ausloesen.
         if (pkg == packageName || pkg in IGNORED_PACKAGES || pkg == currentImePackage()) return
-        if (!isAppSwitch(pkg, event.className?.toString())) {
-            Log.d(TAG, "Fenster ohne Activity, kein App-Wechsel: $pkg / ${event.className}")
+        val time = event.eventTime.takeIf { it > 0 } ?: SystemClock.uptimeMillis()
+        if (!isAppSwitch(pkg, event.className?.toString(), time)) {
+            Log.d(TAG, "Spaetes Fenster einer eben verlassenen App, kein App-Wechsel: $pkg / ${event.className}")
             return
         }
 
@@ -183,15 +191,18 @@ class ComfortAccessibilityService : AccessibilityService() {
         }
     }
 
-    /** Siehe [WindowSwitch]. Fragt den PackageManager einmal je Fenster-Klasse. */
-    private fun isAppSwitch(pkg: String, cls: String?): Boolean =
-        switchCache.getOrPut("$pkg/$cls") {
-            val pm = packageManager
-            val visible = runCatching { pm.getApplicationInfo(pkg, 0) }.isSuccess
-            WindowSwitch.isAppSwitch(cls, visible) { c ->
+    /** Siehe [WindowSwitch]. Fragt den PackageManager einmal je Package bzw. Fenster-Klasse. */
+    private fun isAppSwitch(pkg: String, cls: String?, time: Long): Boolean {
+        val pm = packageManager
+        val visible = visibleCache.getOrPut(pkg) {
+            runCatching { pm.getApplicationInfo(pkg, 0) }.isSuccess
+        }
+        return windowSwitch.isAppSwitch(pkg, cls, visible, time) { c ->
+            activityCache.getOrPut("$pkg/$c") {
                 runCatching { pm.getActivityInfo(ComponentName(pkg, c), 0) }.isSuccess
             }
         }
+    }
 
     /**
      * Package der aktiven Tastatur (DEFAULT_INPUT_METHOD = "pkg/.Klasse"). Live
