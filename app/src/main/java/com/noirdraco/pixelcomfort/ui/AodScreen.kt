@@ -401,7 +401,7 @@ private fun RuleSheet(
             }
 
             Choice(
-                labels = listOf(stringResource(R.string.aod_action_on), stringResource(R.string.aod_action_off)),
+                labels = listOf(stringResource(R.string.aod_choice_on), stringResource(R.string.aod_choice_off)),
                 selected = if (action == AodAction.ON) 0 else 1,
                 onSelect = { action = if (it == 0) AodAction.ON else AodAction.OFF },
             )

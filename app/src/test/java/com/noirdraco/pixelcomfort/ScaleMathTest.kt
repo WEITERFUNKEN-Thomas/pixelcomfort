@@ -120,4 +120,35 @@ class ScaleMathTest {
         assertNull(ScaleMath.parseFontScale("null"))
         assertNull(ScaleMath.parseFontScale(null))
     }
+
+    // ---- Plus/Minus ----
+
+    @Test
+    fun `Anzeigegroesse aendert sich je Tipp um 1 dp und bleibt in den Grenzen`() {
+        val pixel = ScaleMath.Size(1280, 2856)
+        assertEquals(434, ScaleMath.stepWidthDp(pixel, 433, +1))
+        assertEquals(432, ScaleMath.stepWidthDp(pixel, 433, -1))
+        assertEquals(ScaleMath.MAX_WIDTH_DP, ScaleMath.stepWidthDp(pixel, ScaleMath.MAX_WIDTH_DP, +1))
+        assertEquals(ScaleMath.MIN_WIDTH_DP, ScaleMath.stepWidthDp(pixel, ScaleMath.MIN_WIDTH_DP, -1))
+        // Ohne bekannte Groesse einfach 1 dp.
+        assertEquals(434, ScaleMath.stepWidthDp(null, 433, +1))
+    }
+
+    @Test
+    fun `Plus und Minus ueberspringen dp-Werte, die Android nicht einstellen kann`() {
+        // 1080 px: 541 dp ergibt dieselbe Dichte (319 dpi) wie 542 dp.
+        val size = ScaleMath.Size(1080, 2400)
+        assertEquals(542, ScaleMath.stepWidthDp(size, 540, +1))
+        assertEquals(540, ScaleMath.stepWidthDp(size, 542, -1))
+    }
+
+    @Test
+    fun `Schriftgroesse aendert sich je Tipp um 0,05 und bleibt in den Grenzen`() {
+        assertEquals(1.2f, ScaleMath.stepFontScale(1.15f, +1), 0.0001f)
+        assertEquals(1.1f, ScaleMath.stepFontScale(1.15f, -1), 0.0001f)
+        assertEquals(ScaleMath.MAX_FONT_SCALE, ScaleMath.stepFontScale(ScaleMath.MAX_FONT_SCALE, +1), 0.0001f)
+        assertEquals(ScaleMath.MIN_FONT_SCALE, ScaleMath.stepFontScale(ScaleMath.MIN_FONT_SCALE, -1), 0.0001f)
+        // Krumme Systemwerte rasten auf den naechsten Schritt ein.
+        assertEquals(1.2f, ScaleMath.stepFontScale(1.13f, +1), 0.0001f)
+    }
 }

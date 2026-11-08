@@ -3,6 +3,8 @@ package com.noirdraco.pixelcomfort.ui
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderState
@@ -13,23 +15,32 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.noirdraco.pixelcomfort.DisplayScale
 import com.noirdraco.pixelcomfort.R
 import com.noirdraco.pixelcomfort.ScaleMath
 import com.noirdraco.pixelcomfort.SettingsWorker
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
+
+/** Plus/Minus: erst schreiben, wenn eine Weile nicht mehr getippt wurde. */
+private const val STEP_APPLY_DELAY_MS = 800L
 
 /**
  * Gruppe "Anzeige": zwei Schieberegler (Anzeigegroesse = kleinste Breite, Schriftgroesse)
- * mit je einem Button fuer den Standardwert.
+ * mit Plus/Minus fuer feine Schritte und je einem Button fuer den Standardwert.
  *
- * Geschrieben wird erst beim Loslassen des Reglers. Beim Aendern startet Android die
+ * Geschrieben wird erst beim Loslassen des Reglers bzw. kurz nach dem letzten Tipp auf
+ * Plus/Minus - jede Aenderung baut die Anzeige neu auf. Beim Aendern startet Android die
  * Activity neu (Konfigurationswechsel); die Gruppe liest die Werte danach frisch ein.
  */
 @Composable
@@ -61,6 +72,18 @@ internal fun ScaleGroup(refreshKey: Int, onResult: (DisplayScale.Result) -> Unit
         }
     }
 
+    val scope = rememberCoroutineScope()
+    var pendingStep by remember { mutableStateOf<Job?>(null) }
+
+    /** Plus/Minus: Entwurf sofort zeigen, geschrieben wird verzoegert (siehe oben). */
+    fun applyLater(block: () -> DisplayScale.Result) {
+        pendingStep?.cancel()
+        pendingStep = scope.launch {
+            delay(STEP_APPLY_DELAY_MS)
+            apply(block)
+        }
+    }
+
     SettingsGroup {
         val s = state
 
@@ -81,6 +104,13 @@ internal fun ScaleGroup(refreshKey: Int, onResult: (DisplayScale.Result) -> Unit
             onChange = { widthDraft = it.roundToInt() },
             onFinished = { widthDraft?.let { dp -> apply { DisplayScale.setWidthDp(context, dp) } } },
             onDefault = { apply { DisplayScale.resetWidth(context) } },
+            onStep = { steps ->
+                width?.let { current ->
+                    val dp = ScaleMath.stepWidthDp(s?.size, current, steps)
+                    widthDraft = dp
+                    applyLater { DisplayScale.setWidthDp(context, dp) }
+                }
+            },
         )
 
         // ---- Schriftgroesse ----
@@ -100,6 +130,13 @@ internal fun ScaleGroup(refreshKey: Int, onResult: (DisplayScale.Result) -> Unit
             onChange = { fontDraft = ScaleMath.snapFontScale(it) },
             onFinished = { fontDraft?.let { scale -> apply { DisplayScale.setFontScale(context, scale) } } },
             onDefault = { apply { DisplayScale.setFontScale(context, ScaleMath.DEFAULT_FONT_SCALE) } },
+            onStep = { steps ->
+                font?.let { current ->
+                    val scale = ScaleMath.stepFontScale(current, steps)
+                    fontDraft = scale
+                    applyLater { DisplayScale.setFontScale(context, scale) }
+                }
+            },
         )
     }
 }
@@ -115,6 +152,7 @@ private fun ScaleItem(
     onChange: (Float) -> Unit,
     onFinished: () -> Unit,
     onDefault: () -> Unit,
+    onStep: (Int) -> Unit,
 ) {
     SettingsItem {
         Row(
@@ -133,12 +171,21 @@ private fun ScaleItem(
         // Der Wert kommt von aussen (Einstellung bzw. Entwurf), der Zustand folgt ihm nur.
         val state = remember(range) { SliderState(sliderValue, trackRange = range) }
         state.value = sliderValue
-        Slider(
-            state = state,
-            onValueChange = onChange,
-            onValueChangeFinished = onFinished,
-            enabled = enabled,
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconButton(onClick = { onStep(-1) }, enabled = enabled && sliderValue > range.start) {
+                Icon(painterResource(R.drawable.ic_remove), contentDescription = stringResource(R.string.scale_minus, title))
+            }
+            Slider(
+                state = state,
+                onValueChange = onChange,
+                onValueChangeFinished = onFinished,
+                enabled = enabled,
+                modifier = Modifier.weight(1f),
+            )
+            IconButton(onClick = { onStep(+1) }, enabled = enabled && sliderValue < range.endInclusive) {
+                Icon(painterResource(R.drawable.ic_add), contentDescription = stringResource(R.string.scale_plus, title))
+            }
+        }
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp),

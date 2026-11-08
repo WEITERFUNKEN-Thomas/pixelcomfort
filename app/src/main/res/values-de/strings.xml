@@ -49,6 +49,8 @@
     <string name="display_size_hint">Kleinste Breite · Standard %1$s dp</string>
     <string name="font_size_hint">Standard %1$s</string>
     <string name="reset_default">Standard</string>
+    <string name="scale_minus">%1$s: weniger</string>
+    <string name="scale_plus">%1$s: mehr</string>
     <string name="history">Verlauf</string>
     <string name="advanced">Erweitert</string>
     <string name="tile_unavailable">Kachel kann hier nicht hinzugefügt werden.</string>
@@ -146,7 +148,7 @@
     <string name="history_mobile_shown_failed">Mobilfunk-Symbol nicht eingeblendet</string>
     <string name="home_setup_needed">Einrichtung unvollständig</string>
     <string name="display_summary">Anzeigegröße und Schriftgröße</string>
-    <string name="display_footer">Gilt beim Loslassen des Reglers. Ist die Anzeige kaum noch bedienbar: adb shell wm density reset</string>
+    <string name="display_footer">Gilt beim Loslassen des Reglers bzw. kurz nach dem letzten Tipp auf + oder −. Ist die Anzeige kaum noch bedienbar: adb shell wm density reset</string>
     <string name="more_options">Weitere Optionen</string>
     <string name="rotate_title">Automatisch drehen</string>
     <string name="rotate_apps_intro">In diesen Apps dreht sich die Anzeige mit dem Handy. Überall sonst gilt die vorherige Einstellung. Schaltest du in einer dieser Apps selbst um, bleibt es bei deiner Wahl.</string>
@@ -186,6 +188,9 @@
     <string name="aod_edit_rule">Regel bearbeiten</string>
     <string name="aod_action_on">Always-On-Display an</string>
     <string name="aod_action_off">Always-On-Display aus</string>
+    <!-- Kurz fuer die Auswahl im Regel-Fenster, die langen Texte brechen dort um. -->
+    <string name="aod_choice_on">AOD an</string>
+    <string name="aod_choice_off">AOD aus</string>
     <string name="aod_type_bluetooth">Bluetooth</string>
     <string name="aod_type_wifi">WLAN</string>
     <string name="aod_no_bonded">Keine gekoppelten Geräte gefunden.</string>

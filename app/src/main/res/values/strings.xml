@@ -51,6 +51,8 @@
     <string name="display_size_hint">Smallest width · Default %1$s dp</string>
     <string name="font_size_hint">Default %1$s</string>
     <string name="reset_default">Default</string>
+    <string name="scale_minus">%1$s: less</string>
+    <string name="scale_plus">%1$s: more</string>
     <string name="history">History</string>
     <string name="advanced">Advanced</string>
     <string name="tile_unavailable">The tile can’t be added here.</string>
@@ -148,7 +150,7 @@
     <string name="history_mobile_shown_failed">Couldn’t show mobile signal icon</string>
     <string name="home_setup_needed">Setup incomplete</string>
     <string name="display_summary">Display size and font size</string>
-    <string name="display_footer">Applied when you let go of a slider. If the screen becomes hard to use: adb shell wm density reset</string>
+    <string name="display_footer">Applied when you let go of a slider, or shortly after your last tap on + or −. If the screen becomes hard to use: adb shell wm density reset</string>
     <string name="more_options">More options</string>
     <string name="rotate_title">Auto-rotate</string>
     <string name="rotate_apps_intro">The screen rotates with your phone in these apps. Everywhere else it keeps its previous setting. If you switch rotation yourself while one of them is open, your choice stays.</string>
@@ -188,6 +190,9 @@
     <string name="aod_edit_rule">Edit rule</string>
     <string name="aod_action_on">Always-on display on</string>
     <string name="aod_action_off">Always-on display off</string>
+    <!-- Kurz fuer die Auswahl im Regel-Fenster, die langen Texte brechen dort um. -->
+    <string name="aod_choice_on">AOD on</string>
+    <string name="aod_choice_off">AOD off</string>
     <string name="aod_type_bluetooth">Bluetooth</string>
     <string name="aod_type_wifi">Wi‑Fi</string>
     <string name="aod_no_bonded">No paired devices found.</string>

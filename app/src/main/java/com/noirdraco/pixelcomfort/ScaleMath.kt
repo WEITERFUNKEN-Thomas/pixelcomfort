@@ -1,6 +1,7 @@
 package com.noirdraco.pixelcomfort
 
 import kotlin.math.roundToInt
+import kotlin.math.sign
 
 /**
  * Reine Rechen- und Parse-Logik fuer die Anzeige-Skalierung, ohne Android-Abhaengigkeit
@@ -61,6 +62,25 @@ object ScaleMath {
         (size.shortSide * DENSITY_MEDIUM / widthDp.toFloat()).roundToInt()
 
     fun clampWidthDp(widthDp: Int): Int = widthDp.coerceIn(MIN_WIDTH_DP, MAX_WIDTH_DP)
+
+    /**
+     * Plus/Minus: ein Tipp = der naechste dp-Wert, den Android wirklich einstellen kann.
+     * Die Dichte ist ganzzahlig, darum ergeben oberhalb von etwa 450 dp manche Werte dieselbe
+     * Dichte - die werden uebersprungen. [size] null = einfach 1 dp.
+     */
+    fun stepWidthDp(size: Size?, widthDp: Int, direction: Int): Int {
+        val dir = direction.sign
+        if (size == null || dir == 0) return clampWidthDp(widthDp + dir)
+        val current = densityFor(size, widthDp)
+        var next = widthDp + dir
+        while (next in MIN_WIDTH_DP..MAX_WIDTH_DP && densityFor(size, next) == current) next += dir
+        if (next !in MIN_WIDTH_DP..MAX_WIDTH_DP) return clampWidthDp(widthDp)
+        return clampWidthDp(widthDp(size, densityFor(size, next)))
+    }
+
+    /** Plus/Minus: ein Tipp = 0,05; krumme Werte rasten erst auf den naechsten Schritt ein. */
+    fun stepFontScale(scale: Float, steps: Int): Float =
+        snapFontScale((hundredths(scale) + steps * FONT_STEP_HUNDREDTHS) / 100f)
 
     fun snapFontScale(scale: Float): Float =
         hundredths(scale.coerceIn(MIN_FONT_SCALE, MAX_FONT_SCALE)) / 100f

@@ -22,6 +22,8 @@ object DisplayScale {
     /** Nicht lesbare Werte sind null (z. B. Breite ohne Shizuku). */
     data class State(
         val widthDp: Int?,
+        /** Fuer Plus/Minus: welche dp-Werte erreichbar sind. */
+        val size: ScaleMath.Size?,
         val defaultWidthDp: Int?,
         val fontScale: Float?,
         val shizukuReady: Boolean,
@@ -39,6 +41,7 @@ object DisplayScale {
             ?: context.resources.configuration.fontScale
         return State(
             widthDp = if (size != null && density != null) ScaleMath.widthDp(size, density.current) else null,
+            size = size,
             defaultWidthDp = if (size != null && density != null) ScaleMath.widthDp(size, density.physical) else null,
             fontScale = font,
             shizukuReady = ready,
