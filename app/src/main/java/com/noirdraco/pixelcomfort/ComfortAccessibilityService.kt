@@ -41,6 +41,9 @@ class ComfortAccessibilityService : AccessibilityService() {
 
     private val startupCheck = Runnable { ShizukuWarning.check(this) }
 
+    /** "pkg/Klasse" -> echter App-Wechsel? Nur Main-Thread. */
+    private val switchCache = HashMap<String, Boolean>()
+
     private val shizukuConnected = Shizuku.OnBinderReceivedListener {
         if (ShizukuShell.isReady()) ShizukuWarning.clear(this)
     }
@@ -102,6 +105,10 @@ class ComfortAccessibilityService : AccessibilityService() {
         // ignorieren, damit sie ueber der Kamera keine vorzeitige Wiederherstellung
         // ausloesen.
         if (pkg == packageName || pkg in IGNORED_PACKAGES || pkg == currentImePackage()) return
+        if (!isAppSwitch(pkg, event.className?.toString())) {
+            Log.d(TAG, "Fenster ohne Activity, kein App-Wechsel: $pkg / ${event.className}")
+            return
+        }
 
         val isTarget = pkg in Prefs.getPackages(this)
         // Suppressed-Pruefung erst IM Task, damit schnell aufeinanderfolgende Events
@@ -175,6 +182,16 @@ class ComfortAccessibilityService : AccessibilityService() {
             if (!entry.success) ShizukuWarning.check(ctx)
         }
     }
+
+    /** Siehe [WindowSwitch]. Fragt den PackageManager einmal je Fenster-Klasse. */
+    private fun isAppSwitch(pkg: String, cls: String?): Boolean =
+        switchCache.getOrPut("$pkg/$cls") {
+            val pm = packageManager
+            val visible = runCatching { pm.getApplicationInfo(pkg, 0) }.isSuccess
+            WindowSwitch.isAppSwitch(cls, visible) { c ->
+                runCatching { pm.getActivityInfo(ComponentName(pkg, c), 0) }.isSuccess
+            }
+        }
 
     /**
      * Package der aktiven Tastatur (DEFAULT_INPUT_METHOD = "pkg/.Klasse"). Live
