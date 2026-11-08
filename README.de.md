@@ -64,7 +64,7 @@ Der Schalter liegt als nicht-öffentlicher Key in den System-Settings – **per 
 
 Drei Bausteine:
 
-1. **AccessibilityService** – lauscht auf `TYPE_WINDOW_STATE_CHANGED` und erkennt, wann eine der gewählten Apps in den Vordergrund kommt oder verschwindet. Die Netz-Überwachung (privates DNS, Mobilfunk-Symbol) und die Always-On-Display-Regeln laufen im selben Dienst mit – ein eigener Vordergrunddienst mit Dauer-Benachrichtigung ist nicht nötig.
+1. **AccessibilityService** – lauscht auf `TYPE_WINDOW_STATE_CHANGED` und erkennt, wann eine der gewählten Apps in den Vordergrund kommt oder verschwindet. Welche App wirklich vorn ist, kommt aus den Nutzungsdaten von Android (das letzte `ACTIVITY_RESUMED`), wenn der *Zugriff auf Nutzungsdaten* erteilt ist – Fenster-Ereignisse allein können täuschen (manche Apps melden nach dem Verlassen noch ein spätes Fenster). Ohne den Zugriff entscheidet eine Heuristik. Die Netz-Überwachung (privates DNS, Mobilfunk-Symbol) und die Always-On-Display-Regeln laufen im selben Dienst mit – ein eigener Vordergrunddienst mit Dauer-Benachrichtigung ist nicht nötig.
 2. **SettingWriter** – versucht zuerst den `ContentResolver`; da `cv_enabled` ein `@hide`-Key ist, den Fremd-Apps weder lesen noch schreiben dürfen (auch nicht mit `WRITE_SECURE_SETTINGS`!), greift automatisch der Fallback …
 3. **Shizuku** – führt `settings get/put system cv_enabled …` mit ADB-Shell-Rechten aus. **Kein Root nötig.** Alle Aufrufe laufen auf einem seriellen Hintergrund-Thread.
 
@@ -88,6 +88,7 @@ Die Automatik ist bewusst vorsichtig:
 | Automatisch drehen | `system/accelerometer_rotation` | `WRITE_SETTINGS` |
 | Always-On-Display | `secure/doze_always_on` | `WRITE_SECURE_SETTINGS` |
 | NFC-Kachel | `svc nfc` | **Shizuku** (ab Android 16 zuerst die offizielle API) |
+| Welche App vorn ist (Augenkomfort, Drehen) | Nutzungsdaten | *Zugriff auf Nutzungsdaten* (`GET_USAGE_STATS`), freiwillig – ohne entscheidet eine Heuristik |
 
 Privates DNS, Mobilfunk-Symbol, automatisches Drehen und die Always-On-Display-Regeln brauchen außerdem die eingeschaltete Bedienungshilfe.
 
@@ -182,7 +183,7 @@ Voraussetzungen: Android 13 oder neuer, [Shizuku](https://shizuku.rikka.app/) in
 2. Unter **Einrichtung** auf **Shizuku** tippen → im Shizuku-Dialog *Immer zulassen*
 3. Auf **Bedienungshilfe** tippen → *PixelComfort Auto-Aus* einschalten
 4. Auf **Benachrichtigungen** tippen und erlauben, damit die App warnt, wenn Shizuku nicht läuft
-5. Für privates DNS, Mobilfunk-Symbol, automatisches Drehen und Always-On-Display: **⋮ → Erweitert → Berechtigungen**, auf *Sichere Einstellungen ändern* tippen – das erteilt `WRITE_SECURE_SETTINGS` und `WRITE_SETTINGS` einmalig per Shizuku
+5. Für privates DNS, Mobilfunk-Symbol, automatisches Drehen und Always-On-Display: **⋮ → Erweitert → Berechtigungen**, auf *Sichere Einstellungen ändern* tippen – das erteilt `WRITE_SECURE_SETTINGS`, `WRITE_SETTINGS` und den Zugriff auf Nutzungsdaten einmalig per Shizuku. Solange der Zugriff auf Nutzungsdaten fehlt, bietet ihn oben auf der Startseite eine Karte an (mit Shizuku per Tipp, sonst über die Android-Einstellungen)
 6. Optional: Karte **Augenkomfort** antippen für andere Apps; die übrigen Funktionen mit ihrem Schalter einschalten und über ihre Karte einrichten; **⋮ → Kachel „…" hinzufügen** für die Kacheln
 
 Ist alles erledigt, verschwindet die Einrichtung, und unter dem Titel steht *Alles eingerichtet* oder der letzte Eintrag aus dem Verlauf.
@@ -262,7 +263,7 @@ Namespace, Key und Werte lassen sich in der App unter **⋮ → Erweitert** anpa
 
 **Nutzung auf eigene Gefahr.** Die App ändert Systemeinstellungen über Shizuku, `WRITE_SECURE_SETTINGS` und `WRITE_SETTINGS`. Falsche Werte unter *Erweitert* oder eine extreme Anzeigegröße können das Gerät schwer bedienbar machen – `adb shell wm density reset` und `adb shell settings put system font_scale 1.0` machen die Anzeige-Änderungen rückgängig.
 
-Die App hat keine Internet-Berechtigung.
+Die App hat keine Internet-Berechtigung. Der Zugriff auf Nutzungsdaten dient nur dazu, zu sehen, welche App vorn ist; gespeichert wird nichts.
 
 Privates Hobby-Projekt, ohne Gewähr. Kein offizielles Google-Produkt. „Pixel" ist eine Marke von Google LLC.
 

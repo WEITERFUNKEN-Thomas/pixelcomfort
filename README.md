@@ -64,7 +64,7 @@ The switch is a non-public key in the system settings – **found with an adb di
 
 Three building blocks:
 
-1. **AccessibilityService** – listens for `TYPE_WINDOW_STATE_CHANGED` and detects when one of the selected apps comes to the foreground or leaves it. The network watcher (private DNS, mobile icon) and the always-on display rules run inside the same service, so no extra foreground service or permanent notification is needed.
+1. **AccessibilityService** – listens for `TYPE_WINDOW_STATE_CHANGED` and detects when one of the selected apps comes to the foreground or leaves it. Which app is really in front comes from Android’s usage data (the last `ACTIVITY_RESUMED`) if *Usage access* is granted – window events alone can mislead (some apps send a late window after you left them). Without usage access, a heuristic decides. The network watcher (private DNS, mobile icon) and the always-on display rules run inside the same service, so no extra foreground service or permanent notification is needed.
 2. **SettingWriter** – tries the `ContentResolver` first. Because `cv_enabled` is a `@hide` key that other apps may neither read nor write (not even with `WRITE_SECURE_SETTINGS`), it falls back automatically to …
 3. **Shizuku** – runs `settings get/put system cv_enabled …` with ADB shell rights. **No root required.** All calls run on one serial background thread.
 
@@ -88,6 +88,7 @@ The automation is deliberately cautious:
 | Auto-rotate | `system/accelerometer_rotation` | `WRITE_SETTINGS` |
 | Always-on display | `secure/doze_always_on` | `WRITE_SECURE_SETTINGS` |
 | NFC tile | `svc nfc` | **Shizuku** (Android 16+ tries the official API first) |
+| Which app is in front (Comfort View, auto-rotate) | usage data | *Usage access* (`GET_USAGE_STATS`), optional – without it a heuristic decides |
 
 Private DNS, mobile icon, auto-rotate and the always-on display rules also need the accessibility service to be on.
 
@@ -182,7 +183,7 @@ Requirements: Android 13 or newer, [Shizuku](https://shizuku.rikka.app/) install
 2. Under **Setup**, tap **Shizuku** → choose *Allow all the time* in the Shizuku dialog
 3. Tap **Accessibility service** → turn on *PixelComfort auto-off*
 4. Tap **Notifications** and allow them, so the app can warn you when Shizuku isn’t running
-5. For private DNS, mobile icon, auto-rotate and always-on display: **⋮ → Advanced → Permissions**, tap *Modify secure settings* – this grants `WRITE_SECURE_SETTINGS` and `WRITE_SETTINGS` once via Shizuku
+5. For private DNS, mobile icon, auto-rotate and always-on display: **⋮ → Advanced → Permissions**, tap *Modify secure settings* – this grants `WRITE_SECURE_SETTINGS`, `WRITE_SETTINGS` and usage access once via Shizuku. As long as usage access is missing, a card at the top of the home screen offers it (with Shizuku in one tap, otherwise via the Android settings)
 6. Optional: tap the **Comfort View** card to pick other apps; turn on the other features with their switches and set them up by tapping their cards; **⋮ → Add “…” tile** for the tiles
 
 Once everything is done, the setup group disappears and the line under the title shows *All set* or the last entry from the history.
@@ -262,7 +263,7 @@ Namespace, key and values can be changed in the app under **⋮ → Advanced**.
 
 **Use at your own risk.** The app changes system settings via Shizuku, `WRITE_SECURE_SETTINGS` and `WRITE_SETTINGS`. Wrong values under *Advanced* or an extreme display size can make the device hard to use – `adb shell wm density reset` and `adb shell settings put system font_scale 1.0` undo the display changes.
 
-The app has no internet permission.
+The app has no internet permission. Usage access is only used to see which app is in front; nothing is stored.
 
 Private hobby project, provided without warranty. Not an official Google product. “Pixel” is a trademark of Google LLC.
 

@@ -26,6 +26,6 @@ Dazu bringt PixelComfort ein paar weitere kleine Automatiken für dein Pixel mit
 <li>Die Bedienungshilfe der App ist eingeschaltet. Sie erfährt nur, welche App im Vordergrund ist, und liest keine Bildschirminhalte.</li>
 </ul>
 
-Die Standort-Berechtigung brauchen nur WLAN-Regeln (privates DNS, Always-On-Display), weil Android den WLAN-Namen nur Apps mit Standortzugriff verrät. Die Bluetooth-Berechtigung dient nur dazu, zu erkennen, welches Gerät sich verbindet; die App sucht nie nach Geräten. Es verlassen keine Daten das Gerät; die App hat keine Internet-Berechtigung.
+Die Standort-Berechtigung brauchen nur WLAN-Regeln (privates DNS, Always-On-Display), weil Android den WLAN-Namen nur Apps mit Standortzugriff verrät. Die Bluetooth-Berechtigung dient nur dazu, zu erkennen, welches Gerät sich verbindet; die App sucht nie nach Geräten. Der Zugriff auf Nutzungsdaten (freiwillig) dient nur dazu, zuverlässig zu erkennen, welche App vorn ist; gespeichert wird nichts. Es verlassen keine Daten das Gerät; die App hat keine Internet-Berechtigung.
 
 Nutzung auf eigene Gefahr: Die App ändert Systemeinstellungen. Kein offizielles Google-Produkt. „Pixel“ ist eine Marke von Google LLC.

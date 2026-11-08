@@ -26,6 +26,6 @@ Around that, PixelComfort bundles a few more small automations for your Pixel. E
 <li>The app's accessibility service turned on. It only listens for which app is in the foreground and does not read screen content.</li>
 </ul>
 
-The location permission is only needed for Wi‑Fi rules (private DNS, always-on display), because Android reveals the Wi‑Fi name only to apps with location access. The Bluetooth permission is only used to notice which device connects; the app never scans. No data leaves the device; the app has no internet permission.
+The location permission is only needed for Wi‑Fi rules (private DNS, always-on display), because Android reveals the Wi‑Fi name only to apps with location access. The Bluetooth permission is only used to notice which device connects; the app never scans. Usage access (optional) is only used to tell reliably which app is in front; nothing is stored. No data leaves the device; the app has no internet permission.
 
 Use at your own risk: the app changes system settings. Not an official Google product. "Pixel" is a trademark of Google LLC.
