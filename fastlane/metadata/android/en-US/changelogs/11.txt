@@ -1,0 +1,1 @@
+• Eye comfort and auto-rotate tell more reliably which app is in front: with the new, optional "Usage access" the app asks Android directly. Without it, everything works as before.
