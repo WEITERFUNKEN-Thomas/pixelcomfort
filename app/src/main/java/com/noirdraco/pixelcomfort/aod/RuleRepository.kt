@@ -15,7 +15,8 @@ class RuleRepository(private val store: DataStore<AodData>) {
             val index = data.rules.indexOfFirst { it.id == rule.id }
             val rules = if (index < 0) data.rules + rule
             else data.rules.toMutableList().also { it[index] = rule }
-            data.copy(rules = rules)
+            // Wer die erste Regel anlegt, will die Automatik nutzen.
+            data.copy(rules = rules, automation = data.automation || data.rules.isEmpty())
         }
     }
 

@@ -9,7 +9,8 @@ import java.io.OutputStream
 
 @Serializable
 data class AodData(
-    val automation: Boolean = true,
+    /** Ab Werk aus, damit die neue Funktion nach einem Update nicht als "an" erscheint. Die erste Regel schaltet sie ein. */
+    val automation: Boolean = false,
     val rules: List<Rule> = emptyList(),
     val engine: EngineState = EngineState(),
 ) {

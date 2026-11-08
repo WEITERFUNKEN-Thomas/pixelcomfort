@@ -11,7 +11,7 @@ import java.io.ByteArrayOutputStream
 class AodDataSerializerTest {
     @Test fun roundTripKeepsEverything() = runBlocking {
         val data = AodData(
-            automation = false,
+            automation = true,
             rules = listOf(
                 Rule("1", Trigger.Bluetooth("AA:BB:CC:DD:EE:FF", "Auto"), AodAction.OFF),
                 Rule("2", Trigger.Wifi("Zuhause"), AodAction.ON, enabled = false),
@@ -30,15 +30,16 @@ class AodDataSerializerTest {
     }
 
     @Test fun unknownFieldsAreIgnored() = runBlocking {
-        val json = """{"automation":true,"rules":[],"future":1}"""
+        val json = """{"automation":false,"rules":[],"future":1}"""
         assertEquals(AodData(), AodDataSerializer.readFrom(ByteArrayInputStream(json.toByteArray())))
     }
 
     @Test fun shouldRunNeedsAutomationAndAnEnabledRule() {
         val rule = Rule("1", Trigger.Wifi("Zuhause"), AodAction.ON)
+        assertEquals(false, AodData().automation)
         assertEquals(false, AodData().shouldRun)
-        assertEquals(true, AodData(rules = listOf(rule)).shouldRun)
-        assertEquals(false, AodData(rules = listOf(rule.copy(enabled = false))).shouldRun)
+        assertEquals(true, AodData(automation = true, rules = listOf(rule)).shouldRun)
+        assertEquals(false, AodData(automation = true, rules = listOf(rule.copy(enabled = false))).shouldRun)
         assertEquals(false, AodData(automation = false, rules = listOf(rule)).shouldRun)
     }
 }

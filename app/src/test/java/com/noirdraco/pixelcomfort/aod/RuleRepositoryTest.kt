@@ -41,12 +41,28 @@ class RuleRepositoryTest {
         assertEquals(listOf(c, a, b), repo.data.first().rules)
     }
 
+    @Test fun firstRuleTurnsAutomationOn() = runBlocking {
+        val repo = repo()
+        assertEquals(false, repo.data.first().automation)
+        repo.upsertRule(a)
+        assertEquals(true, repo.data.first().automation)
+    }
+
+    @Test fun laterRulesKeepAutomationOff() = runBlocking {
+        val repo = repo()
+        repo.upsertRule(a)
+        repo.setAutomation(false)
+        repo.upsertRule(b)
+        repo.upsertRule(a.copy(action = AodAction.OFF))
+        assertEquals(false, repo.data.first().automation)
+    }
+
     @Test fun automationAndEngineStateArePersisted() = runBlocking {
         val repo = repo()
-        repo.setAutomation(false)
+        repo.setAutomation(true)
         repo.updateEngine(EngineState(baseline = true))
         val data = repo.data.first()
-        assertEquals(false, data.automation)
+        assertEquals(true, data.automation)
         assertEquals(EngineState(baseline = true), data.engine)
     }
 }
