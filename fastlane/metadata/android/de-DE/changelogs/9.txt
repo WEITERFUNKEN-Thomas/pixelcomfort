@@ -3,4 +3,5 @@
 • Neu: Automatisch drehen nur in ausgewählten Apps, mit Kachel
 • Neu: Always-On-Display je nach Bluetooth-Gerät oder WLAN
 • Neu: Schnelleinstellungs-Kachel für NFC
+• Anzeige: Plus und Minus für feine Schritte
 • Braucht jetzt Android 13 oder neuer

@@ -39,7 +39,7 @@ The home screen is an overview with one card per feature: the switch turns a fea
 - **Hide mobile signal on Wi‑Fi** – hides the mobile signal icon in the status bar while Wi‑Fi is connected
 - **Auto-rotate** – the screen rotates only in the apps you choose, everywhere else it keeps its previous setting
 - **Always-on display** – rules switch the always-on display on or off depending on a connected Bluetooth device or Wi‑Fi
-- **Display** – sliders for display size (smallest width in dp) and font size, each with a *Default* button
+- **Display** – sliders for display size (smallest width in dp) and font size, with **+**/**−** for fine steps and a *Default* button each
 - **Quick Settings tiles** – *Comfort View*, *Rotate in apps* and *NFC*
 - **History** – shows what the app switched, when, and what went wrong
 - **Shizuku warning** – a notification tells you when Shizuku isn’t running
@@ -155,7 +155,7 @@ Rules switch the always-on display (`secure/doze_always_on`) depending on a conn
 
 ## 🖥️ Display size and font size
 
-Tap the **Display** card. Both sliders write when you let go. Display size uses `wm density` through Shizuku, font size uses the public key `system/font_scale`. The ranges are limited on purpose (320–600 dp, 0.85–2.00) so the device always stays usable.
+Tap the **Display** card. Both sliders write when you let go. **+** and **−** move display size to the next reachable dp value and font size by 0.05; the change is applied shortly after your last tap. Display size uses `wm density` through Shizuku, font size uses the public key `system/font_scale`. The ranges are limited on purpose (320–600 dp, 0.85–2.00) so the device always stays usable.
 
 Emergency reset over adb:
 
@@ -254,7 +254,7 @@ Namespace, key and values can be changed in the app under **⋮ → Advanced**.
 - **Private DNS by Wi‑Fi** needs the location permission and location turned on – otherwise the Wi‑Fi name can’t be read and private DNS simply stays on at home too.
 - **Always-on display Wi‑Fi rules** match the Wi‑Fi name only – unlike the home Wi‑Fi for private DNS, open networks count too.
 - **Uninstall while away** (or turn the DNS automation off first): if the app is removed on your home Wi‑Fi, private DNS stays off – also later when you are away. Android gives an app no chance to enter it again when it is uninstalled. Turn it on by hand under *Settings → Network & internet → Private DNS*. For the same reason, turn *Hide mobile signal on Wi‑Fi* off before uninstalling, or the icon stays hidden.
-- **Not every dp value is reachable**: Android stores the density in whole dpi, so above roughly 450 dp the display size moves in steps of 1–2 dp.
+- **Not every dp value is reachable**: Android stores the density in whole dpi, so above roughly 450 dp the display size moves in steps of 1–2 dp (**+**/**−** skip those values).
 - In the compact tile layout of the Pixel, Android shows **only the icon** – label and subtitle only appear in the edit screen of Quick Settings.
 - Tested on a **Pixel 10 Pro with Android 17** – the `cv_*` key probably only exists on Pixel devices with the comfort filter feature (`com.android.pixeldisplayservice`).
 

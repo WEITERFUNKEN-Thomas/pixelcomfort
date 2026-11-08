@@ -12,7 +12,7 @@ Around that, PixelComfort bundles a few more small automations for your Pixel. E
 <li>Auto-rotate only in the apps you choose, with a Quick Settings tile</li>
 <li>Always-on display by Bluetooth device or Wi‑Fi, e.g. off in the car</li>
 <li>Quick Settings tile for NFC</li>
-<li>Sliders for display size and font size, each with a Default button</li>
+<li>Sliders for display size and font size, with plus/minus for fine steps and a Default button each</li>
 <li>App picker with icons and search</li>
 <li>History of what was paused, restored or switched, and what went wrong</li>
 <li>Notification when Shizuku isn't running</li>

@@ -39,7 +39,7 @@ Die Startseite ist eine Übersicht mit einer Karte pro Funktion: Der Schalter sc
 - **Mobilfunk-Symbol im WLAN ausblenden** – blendet das Mobilfunk-Symbol in der Statusleiste aus, solange WLAN verbunden ist
 - **Automatisch drehen** – die Anzeige dreht sich nur in den Apps, die du auswählst, überall sonst gilt die vorherige Einstellung
 - **Always-On-Display** – Regeln schalten das Always-On-Display je nach verbundenem Bluetooth-Gerät oder WLAN an oder aus
-- **Anzeige** – Regler für Anzeigegröße (kleinste Breite in dp) und Schriftgröße, je mit *Standard*-Button
+- **Anzeige** – Regler für Anzeigegröße (kleinste Breite in dp) und Schriftgröße, mit **+**/**−** für feine Schritte und je einem *Standard*-Button
 - **Schnelleinstellungs-Kacheln** – *Augenkomfort*, *Drehen in Apps* und *NFC*
 - **Verlauf** – zeigt, was die App wann geschaltet hat und was schiefging
 - **Shizuku-Warnung** – eine Benachrichtigung meldet, wenn Shizuku nicht läuft
@@ -155,7 +155,7 @@ Regeln schalten das Always-On-Display (`secure/doze_always_on`) je nach verbunde
 
 ## 🖥️ Anzeigegröße und Schriftgröße
 
-Über die Karte **Anzeige**. Beide Regler schreiben beim Loslassen. Die Anzeigegröße läuft über `wm density` per Shizuku, die Schriftgröße über den öffentlichen Key `system/font_scale`. Die Bereiche sind bewusst begrenzt (320–600 dp, 0,85–2,00), damit das Gerät immer bedienbar bleibt.
+Über die Karte **Anzeige**. Beide Regler schreiben beim Loslassen. **+** und **−** ändern die Anzeigegröße um den nächsten einstellbaren dp-Wert und die Schrift um 0,05; übernommen wird kurz nach dem letzten Tipp. Die Anzeigegröße läuft über `wm density` per Shizuku, die Schriftgröße über den öffentlichen Key `system/font_scale`. Die Bereiche sind bewusst begrenzt (320–600 dp, 0,85–2,00), damit das Gerät immer bedienbar bleibt.
 
 Notfall-Reset per adb:
 
@@ -254,7 +254,7 @@ Namespace, Key und Werte lassen sich in der App unter **⋮ → Erweitert** anpa
 - **Privates DNS je nach WLAN** braucht die Standort-Berechtigung und eingeschalteten Standort – sonst ist der WLAN-Name nicht lesbar und privates DNS bleibt einfach auch zu Hause an.
 - **WLAN-Regeln fürs Always-On-Display** prüfen nur den WLAN-Namen – anders als beim Heim-WLAN fürs private DNS zählen auch offene Netze.
 - **Vor dem Deinstallieren unterwegs sein** (oder die DNS-Automatik ausschalten): Wird die App im Heim-WLAN entfernt, bleibt privates DNS aus – auch später unterwegs. Android gibt einer App beim Deinstallieren keine Gelegenheit mehr, es wieder einzutragen. Dann von Hand unter *Einstellungen → Netzwerk & Internet → Privates DNS* einschalten. Aus demselben Grund vor dem Deinstallieren *Mobilfunk-Symbol im WLAN ausblenden* abschalten, sonst bleibt das Symbol ausgeblendet.
-- **Nicht jeder dp-Wert ist erreichbar**: Android speichert die Dichte in ganzen dpi, oberhalb von etwa 450 dp springt die Anzeigegröße deshalb in Schritten von 1–2 dp.
+- **Nicht jeder dp-Wert ist erreichbar**: Android speichert die Dichte in ganzen dpi, oberhalb von etwa 450 dp springt die Anzeigegröße deshalb in Schritten von 1–2 dp (**+**/**−** überspringen solche Werte).
 - Im kompakten Kachel-Layout des Pixel zeigt Android **nur das Icon** – Label und Untertitel erscheinen erst im Bearbeiten-Screen der Schnelleinstellungen.
 - Getestet auf **Pixel 10 Pro mit Android 17** – der `cv_*`-Key existiert vermutlich nur auf Pixel-Geräten mit dem Comfort-Filter-Feature (`com.android.pixeldisplayservice`).
 

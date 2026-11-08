@@ -3,4 +3,5 @@
 • New: auto-rotate only in the apps you choose, with a tile
 • New: always-on display by Bluetooth device or Wi‑Fi
 • New: Quick Settings tile for NFC
+• Display: plus and minus buttons for fine steps
 • Now requires Android 13 or newer

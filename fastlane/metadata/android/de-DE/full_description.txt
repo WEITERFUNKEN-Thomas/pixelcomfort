@@ -12,7 +12,7 @@ Dazu bringt PixelComfort ein paar weitere kleine Automatiken für dein Pixel mit
 <li>Automatisch drehen nur in Apps, die du auswählst, mit Schnelleinstellungs-Kachel</li>
 <li>Always-On-Display je nach Bluetooth-Gerät oder WLAN, z. B. aus im Auto</li>
 <li>Schnelleinstellungs-Kachel für NFC</li>
-<li>Regler für Anzeigegröße und Schriftgröße, je mit Standard-Button</li>
+<li>Regler für Anzeigegröße und Schriftgröße, mit Plus/Minus für feine Schritte und je einem Standard-Button</li>
 <li>App-Auswahl mit Symbolen und Suche</li>
 <li>Verlauf: wann pausiert, wiederhergestellt oder geschaltet wurde und was schiefging</li>
 <li>Benachrichtigung, wenn Shizuku nicht läuft</li>
