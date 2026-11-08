@@ -25,8 +25,8 @@ android {
         applicationId = "com.noirdraco.pixelcomfort"
         minSdk = 33
         targetSdk = 37
-        versionCode = 9
-        versionName = "2.0"
+        versionCode = 10
+        versionName = "2.0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

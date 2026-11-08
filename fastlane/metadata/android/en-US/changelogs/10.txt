@@ -1,0 +1,1 @@
+• Auto-rotate and eye comfort work again when an app comes back from the background (e.g. YouTube)
