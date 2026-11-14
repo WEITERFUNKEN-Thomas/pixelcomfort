@@ -1,6 +1,6 @@
 <resources>
     <string name="accessibility_service_label">PixelComfort Auto-Aus</string>
-    <string name="accessibility_service_description">Deaktiviert den Augenkomfort-Modus automatisch, sobald die Kamera- oder Fotos-App im Vordergrund ist, und stellt ihn beim Verlassen wieder her. Auf Wunsch schaltet sie außerdem privates DNS je nach WLAN, blendet im WLAN das Mobilfunk-Symbol aus, schaltet Automatisch drehen in gewählten Apps ein und das Always-On-Display je nach Bluetooth-Gerät oder WLAN.</string>
+    <string name="accessibility_service_description">Deaktiviert den Augenkomfort-Modus automatisch, sobald die Kamera- oder Fotos-App im Vordergrund ist, und stellt ihn beim Verlassen wieder her. Auf Wunsch schaltet sie außerdem privates DNS je nach WLAN, blendet im WLAN das Mobilfunk-Symbol aus und schaltet das Always-On-Display je nach Bluetooth-Gerät oder WLAN.</string>
     <string name="qs_tile_label">Augenkomfort</string>
     <string name="value_on">An</string>
     <string name="value_off">Aus</string>
@@ -94,7 +94,7 @@
     <string name="perm_missing">Fehlt · Tippen zum Erteilen per Shizuku</string>
     <string name="perms_granted">Berechtigungen erteilt</string>
     <string name="usage_access">Zugriff auf Nutzungsdaten</string>
-    <string name="usage_hint_summary">Damit erkennen Augenkomfort und Drehen zuverlässig, welche App vorn ist. Gelesen wird nur die App im Vordergrund, gespeichert wird nichts. Tippen zum Erteilen.</string>
+    <string name="usage_hint_summary">Damit erkennt der Augenkomfort zuverlässig, welche App vorn ist. Gelesen wird nur die App im Vordergrund, gespeichert wird nichts. Tippen zum Erteilen.</string>
     <string name="adv_system_dialog">Im Systemdialog erlauben</string>
     <string name="adv_system_dialog_summary">Systemeinstellungen ändern, ohne Shizuku</string>
     <string name="adv_permissions_footer">Für den Augenkomfort-Modus selbst reichen diese Rechte nicht: Android lässt fremde Apps diese Einstellung nicht direkt ändern, deshalb läuft das Schalten über Shizuku. Shizuku muss nach jedem Neustart gestartet werden.</string>
@@ -152,21 +152,6 @@
     <string name="display_summary">Anzeigegröße und Schriftgröße</string>
     <string name="display_footer">Gilt beim Loslassen des Reglers bzw. kurz nach dem letzten Tipp auf + oder −. Ist die Anzeige kaum noch bedienbar: adb shell wm density reset</string>
     <string name="more_options">Weitere Optionen</string>
-    <string name="rotate_title">Automatisch drehen</string>
-    <string name="rotate_apps_intro">In diesen Apps dreht sich die Anzeige mit dem Handy. Überall sonst gilt die vorherige Einstellung. Schaltest du in einer dieser Apps selbst um, bleibt es bei deiner Wahl.</string>
-    <string name="rotate_summary_off">Nur in Apps, die du auswählst</string>
-    <string name="rotate_summary_no_apps">An · tippen, um Apps auszuwählen</string>
-    <string name="rotate_summary_on">An · in %1$s</string>
-    <string name="history_rotate_on">Automatisch drehen an für %1$s</string>
-    <string name="history_rotate_on_failed">Automatisch drehen nicht eingeschaltet für %1$s</string>
-    <string name="history_rotate_restore">Automatisch drehen zurückgestellt</string>
-    <string name="history_rotate_restore_failed">Automatisch drehen nicht zurückgestellt</string>
-    <string name="rotate_tile_label">Drehen in Apps</string>
-    <string name="rotate_tile_no_apps">Keine Apps gewählt</string>
-    <plurals name="rotate_tile_apps">
-        <item quantity="one">In %1$d App</item>
-        <item quantity="other">In %1$d Apps</item>
-    </plurals>
     <string name="nfc_tile_label">NFC</string>
     <string name="nfc_tile_on_secure">An · Sicher</string>
     <string name="nfc_tile_turning_on">Wird eingeschaltet…</string>

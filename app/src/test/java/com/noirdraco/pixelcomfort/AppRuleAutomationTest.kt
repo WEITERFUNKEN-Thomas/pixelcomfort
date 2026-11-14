@@ -234,7 +234,7 @@ class AppRuleAutomationTest {
         assertTrue(env.events.isEmpty())
     }
 
-    // ---- Automatisch drehen: in der Ziel-App AN statt aus ----
+    // ---- Fester Wert AN statt aus ----
 
     @Test
     fun `mit Wert an wird in der Ziel-App eingeschaltet und danach wieder aus`() {
@@ -254,7 +254,7 @@ class AppRuleAutomationTest {
         val env = FakeEnv("0", forcedValue = "1")
         val automation = AppRuleAutomation(env)
         automation.onForeground(youtube, isTarget = true)
-        // In YouTube ueber die Schnelleinstellungen wieder auf Hochformat gestellt.
+        // In der Ziel-App ueber die Schnelleinstellungen von Hand zurueckgestellt.
         env.value = "0"
         env.writes.clear()
 

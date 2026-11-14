@@ -2,9 +2,8 @@ package com.noirdraco.pixelcomfort
 
 /**
  * Eine Einstellung, die in bestimmten Apps einen festen Wert bekommt und danach zurueck
- * auf den vorherigen geht - fuer den Augenkomfort (in Kamera/Fotos aus) und fuers
- * automatische Drehen (in YouTube/Fotos an). Ohne Android-Abhaengigkeit (damit per
- * Unit-Test pruefbar). Der [ComfortAccessibilityService] liefert die Fenster-Wechsel und
+ * auf den vorherigen geht - fuer den Augenkomfort (in Kamera/Fotos aus). Ohne
+ * Android-Abhaengigkeit (damit per Unit-Test pruefbar). Der [ComfortAccessibilityService] liefert die Fenster-Wechsel und
  * die echte Umgebung ([Env]).
  *
  * Regeln:

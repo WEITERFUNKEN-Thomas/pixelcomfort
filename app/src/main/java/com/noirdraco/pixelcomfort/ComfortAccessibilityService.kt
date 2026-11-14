@@ -38,9 +38,6 @@ class ComfortAccessibilityService : AccessibilityService() {
     private val main = Handler(Looper.getMainLooper())
     private val automation = AppRuleAutomation(ServiceEnv())
 
-    /** Eigene Instanz, damit sie sich ueber App-Wechsel merkt, was schon gemeldet ist. */
-    private val rotation by lazy { AutoRotate.automation(this) }
-
     private val startupCheck = Runnable { ShizukuWarning.check(this) }
 
     /** Filtert spaete Fenster schon verlassener Apps ([WindowSwitch]). Nur Main-Thread. */
@@ -71,25 +68,35 @@ class ComfortAccessibilityService : AccessibilityService() {
         NetworkWatcher.start(this)
         // Always-On-Display-Regeln (Bluetooth/WLAN) laufen in diesem Dienst mit.
         AodMonitor.start(this)
+        SettingsWorker.submit { restoreLegacyRotation() }
+    }
+
+    /**
+     * "Automatisch drehen in Apps" gab es von 2.0 bis 2.0.1. War es beim Update gerade fuer
+     * eine App eingeschaltet, stellt niemand mehr zurueck - das passiert hier einmalig.
+     * Steht nicht mehr 1 da, wurde von Hand umgestellt: dann bleibt es dabei.
+     */
+    private fun restoreLegacyRotation() {
+        val saved = Prefs.takeLegacyRotateRestore(this) ?: return
+        if (SettingWriter.read(this, Prefs.NS_SYSTEM, LEGACY_ROTATE_KEY) != "1") return
+        val res = SettingWriter.write(this, Prefs.NS_SYSTEM, LEGACY_ROTATE_KEY, saved)
+        Log.i(TAG, "Drehen (entfernt): zurueck auf $LEGACY_ROTATE_KEY=$saved ok=${res.success} ${res.message}")
     }
 
     /**
      * Die Bedienungshilfe wird abgeschaltet: privates DNS darf dann nicht ausgeschaltet
      * zurueckbleiben, sonst waere es unterwegs aus, ohne dass jemand es wieder eintraegt.
-     * Ebenso kommen das Mobilfunk-Symbol und der vorherige Dreh-Zustand zurueck. DNS
-     * zuerst - es ist sicherheitsrelevant.
+     * Ebenso kommt das Mobilfunk-Symbol zurueck. DNS zuerst - es ist sicherheitsrelevant.
      */
     override fun onUnbind(intent: Intent?): Boolean {
         NetworkWatcher.stop()
         val ctx = applicationContext
         val dns = Prefs.getDnsEnabled(ctx)
         val icon = Prefs.getHideMobileOnWifi(ctx)
-        val rotate = Prefs.getRotateActive(ctx)
-        if (dns || icon || rotate) {
+        if (dns || icon) {
             SettingsWorker.submitAndWait(UNBIND_TIMEOUT_MS) {
                 if (dns) PrivateDns.automation(ctx).ensureAway()
                 if (icon) MobileIcon.automation(ctx).ensureShown()
-                if (rotate) rotation.release()
             }
         }
         AodMonitor.stopAndRestore(ctx, UNBIND_TIMEOUT_MS)
@@ -133,15 +140,7 @@ class ComfortAccessibilityService : AccessibilityService() {
                 front == null -> Log.d(TAG, "Vorn laut Android: $resumed (ignoriert), Fenster von $pkg")
                 front != pkg -> Log.d(TAG, "Vorn laut Android: $front, Fenster von $pkg / $cls")
             }
-            if (front != null) onForeground(front)
-        }
-    }
-
-    /** [pkg] ist vorn. Nur auf dem [SettingsWorker]. */
-    private fun onForeground(pkg: String) {
-        automation.onForeground(pkg, pkg in Prefs.getPackages(this))
-        if (Prefs.getRotateEnabled(this)) {
-            rotation.onForeground(pkg, pkg in Prefs.getRotatePackages(this))
+            if (front != null) automation.onForeground(front, front in Prefs.getPackages(this))
         }
     }
 
@@ -246,6 +245,8 @@ class ComfortAccessibilityService : AccessibilityService() {
 
         /** So lange darf das Eintragen von privatem DNS beim Abmelden hoechstens dauern. */
         private const val UNBIND_TIMEOUT_MS = 3_000L
+
+        private const val LEGACY_ROTATE_KEY = "accelerometer_rotation"
 
         private val IGNORED_PACKAGES = setOf(
             "com.android.systemui",

@@ -46,39 +46,22 @@ private class InstalledApps(val labels: Map<String, String>, val icons: Map<Stri
 /** Groesse, in der die App-Symbole gerastert werden (px). */
 private const val ICON_PX = 96
 
-/** Welche App-Auswahl die Seite bearbeitet. */
-internal enum class AppSelection(val title: Int, val intro: Int) {
-    COMFORT(R.string.comfort_title, R.string.apps_intro),
-    ROTATE(R.string.rotate_title, R.string.rotate_apps_intro),
-    ;
-
-    fun load(context: Context): Set<String> = when (this) {
-        COMFORT -> Prefs.getPackages(context)
-        ROTATE -> Prefs.getRotatePackages(context)
-    }
-
-    fun save(context: Context, packages: Set<String>) = when (this) {
-        COMFORT -> Prefs.setPackages(context, packages)
-        ROTATE -> Prefs.setRotatePackages(context, packages)
-    }
-}
-
-/** Auswahl der Apps fuer eine Funktion (Augenkomfort, Drehen). Jede Aenderung gilt sofort. */
+/** Auswahl der Apps, in denen der Augenkomfort pausiert. Jede Aenderung gilt sofort. */
 @Composable
-internal fun AppsScreen(selection: AppSelection, onBack: () -> Unit) {
+internal fun AppsScreen(onBack: () -> Unit) {
     val context = LocalContext.current
 
     var apps by remember { mutableStateOf<InstalledApps?>(null) }
-    var selected by remember { mutableStateOf(selection.load(context)) }
+    var selected by remember { mutableStateOf(Prefs.getPackages(context)) }
     // Auswahl beim Oeffnen: bestimmt, was oben steht (Zeilen springen beim Umschalten nicht).
-    val pinned = remember { selection.load(context) }
+    val pinned = remember { Prefs.getPackages(context) }
     var query by rememberSaveable { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
         thread { apps = loadInstalledApps(context.applicationContext) }
     }
 
-    SettingsScaffold(title = stringResource(selection.title), onBack = onBack) { padding ->
+    SettingsScaffold(title = stringResource(R.string.comfort_title), onBack = onBack) { padding ->
         val loaded = apps
         if (loaded == null) {
             Box(Modifier.fillMaxSize().padding(padding).padding(horizontal = PagePadding)) {
@@ -93,7 +76,7 @@ internal fun AppsScreen(selection: AppSelection, onBack: () -> Unit) {
             contentPadding = PaddingValues(start = PagePadding, end = PagePadding, bottom = 24.dp),
         ) {
             item(key = "intro") {
-                GroupFooter(stringResource(selection.intro))
+                GroupFooter(stringResource(R.string.apps_intro))
                 Spacer(Modifier.height(16.dp))
                 SearchField(query, onChange = { query = it })
                 Spacer(Modifier.height(16.dp))
@@ -104,7 +87,7 @@ internal fun AppsScreen(selection: AppSelection, onBack: () -> Unit) {
             itemsIndexed(entries, key = { _, e -> e.packageName }) { index, entry ->
                 val toggle = { on: Boolean ->
                     selected = AppList.toggle(selected, entry.packageName, on)
-                    selection.save(context, selected)
+                    Prefs.setPackages(context, selected)
                 }
                 SettingsRow(
                     title = entry.label,

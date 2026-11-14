@@ -44,7 +44,6 @@ import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.noirdraco.pixelcomfort.AutoRotate
 import com.noirdraco.pixelcomfort.ComfortControl
 import com.noirdraco.pixelcomfort.aod.AodMonitor
 import com.noirdraco.pixelcomfort.aod.Status as AodStatus
@@ -58,7 +57,6 @@ import com.noirdraco.pixelcomfort.NetworkWatcher
 import com.noirdraco.pixelcomfort.Prefs
 import com.noirdraco.pixelcomfort.R
 import com.noirdraco.pixelcomfort.NfcTileService
-import com.noirdraco.pixelcomfort.RotateTileService
 import com.noirdraco.pixelcomfort.SettingsWorker
 import com.noirdraco.pixelcomfort.SetupStatus
 import com.noirdraco.pixelcomfort.ShizukuShell
@@ -80,7 +78,6 @@ internal fun HomeScreen(
     refreshKey: Int,
     onRefresh: () -> Unit,
     onOpenApps: () -> Unit,
-    onOpenRotateApps: () -> Unit,
     onOpenAdvanced: () -> Unit,
     onOpenHistory: () -> Unit,
     onOpenDns: () -> Unit,
@@ -146,14 +143,6 @@ internal fun HomeScreen(
                         onClick = {
                             menuOpen = false
                             requestTile(context, res, ComfortTileService::class.java, R.string.qs_tile_label, R.drawable.ic_qs_comfort, ::say)
-                        },
-                    )
-                    DropdownMenuItem(
-                        text = { Text(stringResource(R.string.add_tile_named, stringResource(R.string.rotate_tile_label))) },
-                        leadingIcon = { Icon(painterResource(R.drawable.ic_screen_rotation), contentDescription = null) },
-                        onClick = {
-                            menuOpen = false
-                            requestTile(context, res, RotateTileService::class.java, R.string.rotate_tile_label, R.drawable.ic_screen_rotation, ::say)
                         },
                     )
                     DropdownMenuItem(
@@ -265,19 +254,6 @@ internal fun HomeScreen(
                     checked = hideMobile,
                     onClick = s?.let { st -> { setHideMobile(context, !st.hideMobileOnWifi, st.accessibilityEnabled, onRefresh) } },
                     onCheckedChange = s?.let { st -> { on -> setHideMobile(context, on, st.accessibilityEnabled, onRefresh) } },
-                )
-
-                // ---- Automatisch drehen: Schalter = Funktion, Karte = Apps ----
-                FeatureRow(
-                    tag = "feature_rotate",
-                    title = stringResource(R.string.rotate_title),
-                    summary = s?.let { rotateSummary(res, it) },
-                    icon = R.drawable.ic_screen_rotation,
-                    active = s?.rotateEnabled == true,
-                    warning = s != null && s.rotateEnabled && (s.rotateLabels.isEmpty() || !s.accessibilityEnabled),
-                    checked = s?.rotateEnabled,
-                    onClick = onOpenRotateApps,
-                    onCheckedChange = { on -> AutoRotate.setEnabled(context, on, onRefresh) },
                 )
 
                 // ---- Always-On-Display: Schalter = Automatik, Karte = Regeln ----
@@ -392,15 +368,6 @@ private fun setHideMobile(context: Context, on: Boolean, serviceRunning: Boolean
         }
         onRefresh()
     }
-}
-
-private fun rotateSummary(res: Resources, s: SetupStatus): String = when {
-    !s.rotateEnabled -> res.getString(R.string.rotate_summary_off)
-    s.rotateLabels.isEmpty() -> res.getString(R.string.rotate_summary_no_apps)
-    !s.accessibilityEnabled ->
-        res.getString(R.string.hide_mobile_needs_service, res.getString(R.string.accessibility_service_label))
-
-    else -> res.getString(R.string.rotate_summary_on, appsSummary(res, s.rotateLabels))
 }
 
 private fun dnsSummary(res: Resources, s: DnsStatus): String = when {

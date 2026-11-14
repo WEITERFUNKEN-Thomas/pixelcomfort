@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name" translatable="false">PixelComfort</string>
     <string name="accessibility_service_label">PixelComfort auto-off</string>
-    <string name="accessibility_service_description">Turns Comfort View off automatically while the camera or Photos app is in the foreground, and restores it when you leave. If you turn them on, it also switches private DNS by Wi‑Fi, hides the mobile signal icon on Wi‑Fi, turns auto-rotate on in the apps you choose and switches the always-on display by Bluetooth device or Wi‑Fi.</string>
+    <string name="accessibility_service_description">Turns Comfort View off automatically while the camera or Photos app is in the foreground, and restores it when you leave. If you turn them on, it also switches private DNS by Wi‑Fi, hides the mobile signal icon on Wi‑Fi and switches the always-on display by Bluetooth device or Wi‑Fi.</string>
     <string name="qs_tile_label">Comfort View</string>
     <string name="value_on">On</string>
     <string name="value_off">Off</string>
@@ -96,7 +96,7 @@
     <string name="perm_missing">Missing · Tap to grant via Shizuku</string>
     <string name="perms_granted">Permissions granted</string>
     <string name="usage_access">Usage access</string>
-    <string name="usage_hint_summary">Lets eye comfort and auto-rotate tell reliably which app is in front. Only the app in front is read, nothing is stored. Tap to grant.</string>
+    <string name="usage_hint_summary">Lets eye comfort tell reliably which app is in front. Only the app in front is read, nothing is stored. Tap to grant.</string>
     <string name="adv_system_dialog">Allow in system dialog</string>
     <string name="adv_system_dialog_summary">Modify system settings, without Shizuku</string>
     <string name="adv_permissions_footer">These permissions aren’t enough for Comfort View itself: Android doesn’t let other apps change that setting directly, so switching goes through Shizuku. Shizuku has to be started again after every restart.</string>
@@ -154,21 +154,6 @@
     <string name="display_summary">Display size and font size</string>
     <string name="display_footer">Applied when you let go of a slider, or shortly after your last tap on + or −. If the screen becomes hard to use: adb shell wm density reset</string>
     <string name="more_options">More options</string>
-    <string name="rotate_title">Auto-rotate</string>
-    <string name="rotate_apps_intro">The screen rotates with your phone in these apps. Everywhere else it keeps its previous setting. If you switch rotation yourself while one of them is open, your choice stays.</string>
-    <string name="rotate_summary_off">Only in the apps you choose</string>
-    <string name="rotate_summary_no_apps">On · tap to choose apps</string>
-    <string name="rotate_summary_on">On · in %1$s</string>
-    <string name="history_rotate_on">Auto-rotate on for %1$s</string>
-    <string name="history_rotate_on_failed">Couldn’t turn on auto-rotate for %1$s</string>
-    <string name="history_rotate_restore">Auto-rotate restored</string>
-    <string name="history_rotate_restore_failed">Couldn’t restore auto-rotate</string>
-    <string name="rotate_tile_label">Rotate in apps</string>
-    <string name="rotate_tile_no_apps">No apps chosen</string>
-    <plurals name="rotate_tile_apps">
-        <item quantity="one">In %1$d app</item>
-        <item quantity="other">In %1$d apps</item>
-    </plurals>
     <string name="nfc_tile_label">NFC</string>
     <string name="nfc_tile_on_secure">On · Secure</string>
     <string name="nfc_tile_turning_on">Turning on…</string>

@@ -12,7 +12,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import com.noirdraco.pixelcomfort.ui.AdvancedScreen
 import com.noirdraco.pixelcomfort.ui.AodScreen
-import com.noirdraco.pixelcomfort.ui.AppSelection
 import com.noirdraco.pixelcomfort.ui.AppsScreen
 import com.noirdraco.pixelcomfort.ui.DisplayScreen
 import com.noirdraco.pixelcomfort.ui.DnsScreen
@@ -53,7 +52,6 @@ class MainActivity : ComponentActivity() {
                         refreshKey = refresh.intValue,
                         onRefresh = onRefresh,
                         onOpenApps = { screen = Screen.APPS },
-                        onOpenRotateApps = { screen = Screen.ROTATE_APPS },
                         onOpenAdvanced = { screen = Screen.ADVANCED },
                         onOpenHistory = { screen = Screen.HISTORY },
                         onOpenDns = { screen = Screen.DNS },
@@ -66,9 +64,7 @@ class MainActivity : ComponentActivity() {
                         onBack = toHome,
                     )
 
-                    Screen.APPS -> AppsScreen(AppSelection.COMFORT, onBack = toHome)
-
-                    Screen.ROTATE_APPS -> AppsScreen(AppSelection.ROTATE, onBack = toHome)
+                    Screen.APPS -> AppsScreen(onBack = toHome)
 
                     Screen.DNS -> DnsScreen(
                         refreshKey = refresh.intValue,
@@ -111,7 +107,7 @@ class MainActivity : ComponentActivity() {
         super.onDestroy()
     }
 
-    private enum class Screen { HOME, APPS, ROTATE_APPS, DNS, AOD, HISTORY, DISPLAY, ADVANCED }
+    private enum class Screen { HOME, APPS, DNS, AOD, HISTORY, DISPLAY, ADVANCED }
 
     companion object {
         const val SHIZUKU_REQUEST_CODE = 1001

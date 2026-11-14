@@ -129,27 +129,7 @@ object Prefs {
     fun getHideMobileOnWifi(c: Context): Boolean = sp(c).getBoolean(K_HIDE_MOBILE_ON_WIFI, false)
     fun setHideMobileOnWifi(c: Context, enabled: Boolean) = sp(c).edit { putBoolean(K_HIDE_MOBILE_ON_WIFI, enabled) }
 
-    // ---- Automatisch drehen (Konfiguration, wird mit gesichert) ----
-
-    fun getRotateEnabled(c: Context): Boolean = sp(c).getBoolean(K_ROTATE_ENABLED, false)
-    fun setRotateEnabled(c: Context, enabled: Boolean) = sp(c).edit { putBoolean(K_ROTATE_ENABLED, enabled) }
-
-    /** Startet leer: die Apps waehlt man selbst. */
-    fun getRotatePackages(c: Context): Set<String> =
-        sp(c).getString(K_ROTATE_PACKAGES, "").orEmpty().split(",").map { it.trim() }.filter { it.isNotEmpty() }.toSet()
-
-    fun setRotatePackages(c: Context, packages: Set<String>) =
-        sp(c).edit { putString(K_ROTATE_PACKAGES, AppList.serialize(packages)) }
-
     // ---- Laufzeit-Zustand ----
-
-    /** Drehen ist gerade fuer eine Ziel-App eingeschaltet; [getRotateSaved] = Wert davor. */
-    fun getRotateActive(c: Context): Boolean = state(c).getBoolean(K_ROTATE_ACTIVE, false)
-    fun getRotateSaved(c: Context): String? = state(c).getString(K_ROTATE_SAVED, null)
-    fun setRotateState(c: Context, active: Boolean, saved: String?) = state(c).edit {
-        putBoolean(K_ROTATE_ACTIVE, active)
-        putString(K_ROTATE_SAVED, saved)
-    }
 
     fun getSuppressed(c: Context): Boolean = state(c).getBoolean(K_SUPPRESSED, false)
     fun getSavedValue(c: Context): String? = state(c).getString(K_SAVED_VALUE, null)
@@ -159,6 +139,30 @@ object Prefs {
             putBoolean(K_SUPPRESSED, suppressed)
             putString(K_SAVED_VALUE, savedValue)
         }
+    }
+
+    /**
+     * Altlast "Automatisch drehen in Apps" (2.0 bis 2.0.1): Wert, der noch zurueckzustellen
+     * ist, weil das Drehen beim Update gerade fuer eine App eingeschaltet war (sonst null).
+     * Raeumt die alten Schluessel in jedem Fall weg.
+     */
+    fun takeLegacyRotateRestore(c: Context): String? {
+        val st = state(c)
+        val saved = if (st.getBoolean(K_ROTATE_ACTIVE, false)) st.getString(K_ROTATE_SAVED, null) else null
+        if (st.contains(K_ROTATE_ACTIVE) || st.contains(K_ROTATE_SAVED)) {
+            st.edit {
+                remove(K_ROTATE_ACTIVE)
+                remove(K_ROTATE_SAVED)
+            }
+        }
+        val config = sp(c)
+        if (config.contains(K_ROTATE_ENABLED) || config.contains(K_ROTATE_PACKAGES)) {
+            config.edit {
+                remove(K_ROTATE_ENABLED)
+                remove(K_ROTATE_PACKAGES)
+            }
+        }
+        return saved
     }
 
     /**

@@ -120,7 +120,6 @@ private fun icon(kind: History.Kind): Int = when (kind) {
     History.Kind.WIDTH, History.Kind.FONT -> R.drawable.ic_tune
     History.Kind.DNS_HOME, History.Kind.DNS_AWAY -> R.drawable.ic_dns
     History.Kind.MOBILE_HIDDEN, History.Kind.MOBILE_SHOWN -> R.drawable.ic_signal
-    History.Kind.ROTATE_ON, History.Kind.ROTATE_RESTORE -> R.drawable.ic_screen_rotation
     History.Kind.AOD_ON, History.Kind.AOD_OFF -> R.drawable.ic_aod
 }
 

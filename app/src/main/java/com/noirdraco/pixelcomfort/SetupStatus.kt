@@ -24,20 +24,17 @@ data class SetupStatus(
     val dns: DnsStatus,
     /** Mobilfunk-Symbol im WLAN ausblenden. */
     val hideMobileOnWifi: Boolean,
-    /** Automatisch drehen in ausgewaehlten Apps. */
-    val rotateEnabled: Boolean,
-    val rotateLabels: List<String>,
     /** "Zugriff auf Nutzungsdaten" erteilt ([ForegroundApp]). */
     val usageAccess: Boolean,
 ) {
     val shizukuReady: Boolean get() = shizukuBinder && shizukuPermission
 
     /**
-     * Hinweis auf der Startseite: Ohne Nutzungsdaten erkennen Augenkomfort und Drehen die App
+     * Hinweis auf der Startseite: Ohne Nutzungsdaten erkennt der Augenkomfort die App
      * vorn nur per Heuristik. Freiwillig - zaehlt nicht zur Einrichtung.
      */
     val usageHint: Boolean
-        get() = !usageAccess && accessibilityEnabled && (targetLabels.isNotEmpty() || rotateEnabled)
+        get() = !usageAccess && accessibilityEnabled && targetLabels.isNotEmpty()
 
     /**
      * Shizuku laeuft, der Wert ist trotzdem leer: Die konfigurierte Einstellung gibt es
@@ -64,8 +61,6 @@ data class SetupStatus(
                 comfortOn = ComfortControl.isOn(context),
                 suppressed = Prefs.getSuppressed(context),
                 targetLabels = Prefs.getPackages(context).map(context::appLabel),
-                rotateEnabled = Prefs.getRotateEnabled(context),
-                rotateLabels = Prefs.getRotatePackages(context).map(context::appLabel),
                 notificationsAllowed = ShizukuWarning.allowed(context),
                 lastEntry = HistoryStore.load(context).firstOrNull(),
                 dns = DnsStatus.read(context),

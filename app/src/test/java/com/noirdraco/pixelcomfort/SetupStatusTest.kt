@@ -12,7 +12,6 @@ class SetupStatusTest {
         usageAccess: Boolean = true,
         accessibility: Boolean = true,
         targets: List<String> = emptyList(),
-        rotate: Boolean = false,
     ) = SetupStatus(
         shizukuBinder = shizuku,
         shizukuPermission = shizuku,
@@ -32,8 +31,6 @@ class SetupStatusTest {
             locationOn = false, writeSecure = true, serviceEnabled = true,
         ),
         hideMobileOnWifi = false,
-        rotateEnabled = rotate,
-        rotateLabels = emptyList(),
         usageAccess = usageAccess,
     )
 
@@ -54,15 +51,14 @@ class SetupStatusTest {
     }
 
     @Test
-    fun `ohne Nutzungsdaten Hinweis, sobald Augenkomfort-Apps oder Drehen genutzt werden`() {
+    fun `ohne Nutzungsdaten Hinweis, sobald Augenkomfort-Apps gewaehlt sind`() {
         assertTrue(status(usageAccess = false, targets = listOf("Kamera")).usageHint)
-        assertTrue(status(usageAccess = false, rotate = true).usageHint)
     }
 
     @Test
     fun `kein Nutzungsdaten-Hinweis, wenn erteilt, nichts genutzt oder die Bedienungshilfe aus ist`() {
-        assertFalse(status(usageAccess = true, targets = listOf("Kamera"), rotate = true).usageHint)
+        assertFalse(status(usageAccess = true, targets = listOf("Kamera")).usageHint)
         assertFalse(status(usageAccess = false).usageHint)
-        assertFalse(status(usageAccess = false, accessibility = false, rotate = true).usageHint)
+        assertFalse(status(usageAccess = false, accessibility = false, targets = listOf("Kamera")).usageHint)
     }
 }
