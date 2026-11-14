@@ -9,7 +9,6 @@ Dazu bringt PixelComfort ein paar weitere kleine Automatiken für dein Pixel mit
 <li>Augenkomfort: pausiert ihn in den gewählten Apps und stellt ihn danach wieder her; Hauptschalter und Schnelleinstellungs-Kachel zum Schalten von Hand</li>
 <li>Privates DNS je nach WLAN: im Heim-WLAN aus (damit z. B. AdGuard Home filtert), überall sonst an</li>
 <li>Mobilfunk-Symbol ausblenden, solange WLAN verbunden ist</li>
-<li>Automatisch drehen nur in Apps, die du auswählst, mit Schnelleinstellungs-Kachel</li>
 <li>Always-On-Display je nach Bluetooth-Gerät oder WLAN, z. B. aus im Auto</li>
 <li>Schnelleinstellungs-Kachel für NFC</li>
 <li>Regler für Anzeigegröße und Schriftgröße, mit Plus/Minus für feine Schritte und je einem Standard-Button</li>

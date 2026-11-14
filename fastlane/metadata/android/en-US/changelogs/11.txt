@@ -1,1 +1,2 @@
-• Eye comfort and auto-rotate tell more reliably which app is in front: with the new, optional "Usage access" the app asks Android directly. Without it, everything works as before.
+• Eye comfort tells more reliably which app is in front: with the new, optional "Usage access" the app asks Android directly. Without it, everything works as before.
+• Removed: auto-rotate in apps and its "Rotate in apps" tile. If rotation was switched on for an app at the time of the update, it is restored once.

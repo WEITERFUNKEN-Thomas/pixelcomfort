@@ -9,7 +9,6 @@ Around that, PixelComfort bundles a few more small automations for your Pixel. E
 <li>Comfort View: pauses it in the apps you pick and restores it afterwards; main switch and Quick Settings tile to switch it by hand</li>
 <li>Private DNS by Wi‑Fi: off on your home Wi‑Fi (so e.g. AdGuard Home filters), on everywhere else</li>
 <li>Hide the mobile signal icon while Wi‑Fi is connected</li>
-<li>Auto-rotate only in the apps you choose, with a Quick Settings tile</li>
 <li>Always-on display by Bluetooth device or Wi‑Fi, e.g. off in the car</li>
 <li>Quick Settings tile for NFC</li>
 <li>Sliders for display size and font size, with plus/minus for fine steps and a Default button each</li>

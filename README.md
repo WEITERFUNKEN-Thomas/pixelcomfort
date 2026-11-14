@@ -4,7 +4,7 @@
 
 **Turns Comfort View off automatically on Google Pixel as soon as you open the camera or Google Photos – and restores exactly the previous state when you leave.**
 
-On top of that: private DNS by Wi‑Fi, mobile signal icon hidden on Wi‑Fi, auto-rotate only in the apps you choose, always-on display by Bluetooth device or Wi‑Fi, display and font size, and Quick Settings tiles for Comfort View, rotation and NFC.
+On top of that: private DNS by Wi‑Fi, mobile signal icon hidden on Wi‑Fi, always-on display by Bluetooth device or Wi‑Fi, display and font size, and Quick Settings tiles for Comfort View and NFC.
 
 ![Platform](https://img.shields.io/badge/Platform-Android%2017%20(API%2037)-3DDC84?logo=android&logoColor=white)
 ![Language](https://img.shields.io/badge/Kotlin-Jetpack%20Compose-7F52FF?logo=kotlin&logoColor=white)
@@ -37,10 +37,9 @@ The home screen is an overview with one card per feature: the switch turns a fea
 - **App picker** – choose the apps from a list with icons and search
 - **Private DNS by Wi‑Fi** – private DNS off on your home Wi‑Fi (so e.g. AdGuard Home filters), on everywhere else
 - **Hide mobile signal on Wi‑Fi** – hides the mobile signal icon in the status bar while Wi‑Fi is connected
-- **Auto-rotate** – the screen rotates only in the apps you choose, everywhere else it keeps its previous setting
 - **Always-on display** – rules switch the always-on display on or off depending on a connected Bluetooth device or Wi‑Fi
 - **Display** – sliders for display size (smallest width in dp) and font size, with **+**/**−** for fine steps and a *Default* button each
-- **Quick Settings tiles** – *Comfort View*, *Rotate in apps* and *NFC*
+- **Quick Settings tiles** – *Comfort View* and *NFC*
 - **History** – shows what the app switched, when, and what went wrong
 - **Shizuku warning** – a notification tells you when Shizuku isn’t running
 - **Material You** – follows your system colours, light and dark
@@ -85,12 +84,11 @@ The automation is deliberately cautious:
 | Font size | `system/font_scale` | `WRITE_SETTINGS`, otherwise Shizuku |
 | Private DNS by Wi‑Fi | `global/private_dns_mode`, `private_dns_specifier` | `WRITE_SECURE_SETTINGS` |
 | Hide mobile signal on Wi‑Fi | `secure/icon_blacklist` | `WRITE_SECURE_SETTINGS` for writing; reading the list usually needs **Shizuku** |
-| Auto-rotate | `system/accelerometer_rotation` | `WRITE_SETTINGS` |
 | Always-on display | `secure/doze_always_on` | `WRITE_SECURE_SETTINGS` |
 | NFC tile | `svc nfc` | **Shizuku** (Android 16+ tries the official API first) |
-| Which app is in front (Comfort View, auto-rotate) | usage data | *Usage access* (`GET_USAGE_STATS`), optional – without it a heuristic decides |
+| Which app is in front (Comfort View) | usage data | *Usage access* (`GET_USAGE_STATS`), optional – without it a heuristic decides |
 
-Private DNS, mobile icon, auto-rotate and the always-on display rules also need the accessibility service to be on.
+Private DNS, mobile icon and the always-on display rules also need the accessibility service to be on.
 
 ## 🌐 Private DNS by Wi‑Fi
 
@@ -133,15 +131,6 @@ While Wi‑Fi is connected, the mobile signal icon (bars and 4G/5G) disappears f
 - If the list **can’t be read**, nothing is written, so no other entries can get lost.
 - Turning the feature or the accessibility service off shows the icon again right away.
 
-## 🔄 Auto-rotate in apps
-
-The screen rotates with your phone only in the apps you choose (`system/accelerometer_rotation` = `1`), everywhere else it keeps its previous setting. The switch on the **Auto-rotate** card turns the feature on, tapping the card opens the app list (it starts empty).
-
-- Same rules as for Comfort View: the previous value is remembered and restored when you leave the app.
-- If you switch rotation yourself while one of the apps is open, your choice stays.
-- Turning the feature off restores the previous setting right away if one of the apps is in front.
-- The tile **Rotate in apps** turns the feature on or off – not Android’s own auto-rotate setting.
-
 ## 🌙 Always-on display by Bluetooth or Wi‑Fi
 
 Rules switch the always-on display (`secure/doze_always_on`) depending on a connected Bluetooth device or Wi‑Fi. Tap the **Always-on display** card to add rules: choose a paired Bluetooth device or a Wi‑Fi name, then *Always-on display on* or *off*.
@@ -170,7 +159,6 @@ adb shell settings put system font_scale 1.0
 Add a tile in the app under **⋮ → Add “…” tile** or in Quick Settings using the pencil.
 
 - **Comfort View** – switches the filter by hand and shows the live state. Without Shizuku it is *unavailable* (greyed out).
-- **Rotate in apps** – turns auto-rotate in apps on or off; the subtitle shows the app or the number of apps.
 - **NFC** – turns NFC on and off. On Android 16 and newer the app tries the official API first, otherwise (or if Android refuses) it uses `svc nfc` through Shizuku. Secure NFC is never changed, only shown (*On · Secure*). Long-pressing the tile opens Android’s NFC settings.
 
 The Comfort View tile, the switch on the card and the automation share one queue, so they can’t overtake each other. If you switch by hand **while** a selected app is in front, your choice also holds after you leave the app.
@@ -183,7 +171,7 @@ Requirements: Android 13 or newer, [Shizuku](https://shizuku.rikka.app/) install
 2. Under **Setup**, tap **Shizuku** → choose *Allow all the time* in the Shizuku dialog
 3. Tap **Accessibility service** → turn on *PixelComfort auto-off*
 4. Tap **Notifications** and allow them, so the app can warn you when Shizuku isn’t running
-5. For private DNS, mobile icon, auto-rotate and always-on display: **⋮ → Advanced → Permissions**, tap *Modify secure settings* – this grants `WRITE_SECURE_SETTINGS`, `WRITE_SETTINGS` and usage access once via Shizuku. As long as usage access is missing, a card at the top of the home screen offers it (with Shizuku in one tap, otherwise via the Android settings)
+5. For private DNS, mobile icon and always-on display: **⋮ → Advanced → Permissions**, tap *Modify secure settings* – this grants `WRITE_SECURE_SETTINGS`, `WRITE_SETTINGS` and usage access once via Shizuku. As long as usage access is missing, a card at the top of the home screen offers it (with Shizuku in one tap, otherwise via the Android settings)
 6. Optional: tap the **Comfort View** card to pick other apps; turn on the other features with their switches and set them up by tapping their cards; **⋮ → Add “…” tile** for the tiles
 
 Once everything is done, the setup group disappears and the line under the title shows *All set* or the last entry from the history.
@@ -232,7 +220,6 @@ The app logs every action under the tag `PixelComfort` (log lines are in German)
 adb logcat -s 'PixelComfort:*'
 # e.g.:
 # Ziel-App 'com.google.android.GoogleCamera' -> system/cv_enabled AUS (gemerkt=1) ok=true via SHIZUKU: …
-# Drehen: 'com.google.android.youtube' -> accelerometer_rotation=1 (gemerkt=0) ok=true via CONTENT_RESOLVER: …
 ```
 
 If the key has a different name on your device, find it yourself with a diff:
@@ -250,8 +237,8 @@ Namespace, key and values can be changed in the app under **⋮ → Advanced**.
 
 - **Shizuku has to run** for Comfort View, display size and the NFC tile – without it the `cv_enabled` key can’t be written (it is locked for other apps).
 - **Advanced Protection Mode**: Android 17 then disables accessibility services that aren’t real accessibility tools. The app detects this and says so under Setup.
-- If you **turn the accessibility service off while** a selected app is open, Comfort View stays off. Use the switch on the card, the tile or the system setting. Private DNS, the mobile icon, rotation and the always-on display are restored in that case.
-- **Private DNS, mobile icon, auto-rotate and always-on display rules** only work while the accessibility service is on.
+- If you **turn the accessibility service off while** a selected app is open, Comfort View stays off. Use the switch on the card, the tile or the system setting. Private DNS, the mobile icon and the always-on display are restored in that case.
+- **Private DNS, mobile icon and always-on display rules** only work while the accessibility service is on.
 - **Private DNS by Wi‑Fi** needs the location permission and location turned on – otherwise the Wi‑Fi name can’t be read and private DNS simply stays on at home too.
 - **Always-on display Wi‑Fi rules** match the Wi‑Fi name only – unlike the home Wi‑Fi for private DNS, open networks count too.
 - **Uninstall while away** (or turn the DNS automation off first): if the app is removed on your home Wi‑Fi, private DNS stays off – also later when you are away. Android gives an app no chance to enter it again when it is uninstalled. Turn it on by hand under *Settings → Network & internet → Private DNS*. For the same reason, turn *Hide mobile signal on Wi‑Fi* off before uninstalling, or the icon stays hidden.

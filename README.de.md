@@ -4,7 +4,7 @@
 
 **Schaltet den Augenkomfort-Modus (Comfort View) auf dem Google Pixel automatisch aus, sobald Kamera oder Google Fotos geöffnet werden – und stellt danach exakt den vorherigen Zustand wieder her.**
 
-Dazu: privates DNS je nach WLAN, Mobilfunk-Symbol im WLAN ausblenden, automatisch drehen nur in gewählten Apps, Always-On-Display je nach Bluetooth-Gerät oder WLAN, Anzeige- und Schriftgröße sowie Schnelleinstellungs-Kacheln für Augenkomfort, Drehen und NFC.
+Dazu: privates DNS je nach WLAN, Mobilfunk-Symbol im WLAN ausblenden, Always-On-Display je nach Bluetooth-Gerät oder WLAN, Anzeige- und Schriftgröße sowie Schnelleinstellungs-Kacheln für Augenkomfort und NFC.
 
 ![Plattform](https://img.shields.io/badge/Plattform-Android%2017%20(API%2037)-3DDC84?logo=android&logoColor=white)
 ![Sprache](https://img.shields.io/badge/Kotlin-Jetpack%20Compose-7F52FF?logo=kotlin&logoColor=white)
@@ -37,10 +37,9 @@ Die Startseite ist eine Übersicht mit einer Karte pro Funktion: Der Schalter sc
 - **App-Auswahl** – Apps aus einer Liste mit Symbolen und Suche wählen
 - **Privates DNS je nach WLAN** – im Heim-WLAN aus (damit z. B. AdGuard Home filtert), überall sonst an
 - **Mobilfunk-Symbol im WLAN ausblenden** – blendet das Mobilfunk-Symbol in der Statusleiste aus, solange WLAN verbunden ist
-- **Automatisch drehen** – die Anzeige dreht sich nur in den Apps, die du auswählst, überall sonst gilt die vorherige Einstellung
 - **Always-On-Display** – Regeln schalten das Always-On-Display je nach verbundenem Bluetooth-Gerät oder WLAN an oder aus
 - **Anzeige** – Regler für Anzeigegröße (kleinste Breite in dp) und Schriftgröße, mit **+**/**−** für feine Schritte und je einem *Standard*-Button
-- **Schnelleinstellungs-Kacheln** – *Augenkomfort*, *Drehen in Apps* und *NFC*
+- **Schnelleinstellungs-Kacheln** – *Augenkomfort* und *NFC*
 - **Verlauf** – zeigt, was die App wann geschaltet hat und was schiefging
 - **Shizuku-Warnung** – eine Benachrichtigung meldet, wenn Shizuku nicht läuft
 - **Material You** – folgt den Systemfarben, hell und dunkel
@@ -85,12 +84,11 @@ Die Automatik ist bewusst vorsichtig:
 | Schriftgröße | `system/font_scale` | `WRITE_SETTINGS`, sonst Shizuku |
 | Privates DNS je nach WLAN | `global/private_dns_mode`, `private_dns_specifier` | `WRITE_SECURE_SETTINGS` |
 | Mobilfunk-Symbol im WLAN ausblenden | `secure/icon_blacklist` | `WRITE_SECURE_SETTINGS` zum Schreiben; Lesen der Liste meist nur per **Shizuku** |
-| Automatisch drehen | `system/accelerometer_rotation` | `WRITE_SETTINGS` |
 | Always-On-Display | `secure/doze_always_on` | `WRITE_SECURE_SETTINGS` |
 | NFC-Kachel | `svc nfc` | **Shizuku** (ab Android 16 zuerst die offizielle API) |
-| Welche App vorn ist (Augenkomfort, Drehen) | Nutzungsdaten | *Zugriff auf Nutzungsdaten* (`GET_USAGE_STATS`), freiwillig – ohne entscheidet eine Heuristik |
+| Welche App vorn ist (Augenkomfort) | Nutzungsdaten | *Zugriff auf Nutzungsdaten* (`GET_USAGE_STATS`), freiwillig – ohne entscheidet eine Heuristik |
 
-Privates DNS, Mobilfunk-Symbol, automatisches Drehen und die Always-On-Display-Regeln brauchen außerdem die eingeschaltete Bedienungshilfe.
+Privates DNS, Mobilfunk-Symbol und die Always-On-Display-Regeln brauchen außerdem die eingeschaltete Bedienungshilfe.
 
 ## 🌐 Privates DNS je nach WLAN
 
@@ -133,15 +131,6 @@ Solange WLAN verbunden ist, verschwindet das Mobilfunk-Symbol (Balken und 4G/5G)
 - Ist die Liste **nicht lesbar**, wird nichts geschrieben – so können keine anderen Einträge verloren gehen.
 - Schaltest du die Funktion oder die Bedienungshilfe ab, wird das Symbol sofort wieder eingeblendet.
 
-## 🔄 Automatisch drehen in Apps
-
-Die Anzeige dreht sich nur in den Apps, die du auswählst, mit dem Handy (`system/accelerometer_rotation` = `1`), überall sonst gilt die vorherige Einstellung. Der Schalter auf der Karte **Automatisch drehen** schaltet die Funktion ein, Antippen der Karte öffnet die App-Liste (sie startet leer).
-
-- Gleiche Regeln wie beim Augenkomfort: Der vorherige Wert wird gemerkt und beim Verlassen der App wiederhergestellt.
-- Schaltest du in einer dieser Apps selbst um, bleibt es bei deiner Wahl.
-- Schaltest du die Funktion ab, während eine der Apps vorn ist, wird sofort zurückgestellt.
-- Die Kachel **Drehen in Apps** schaltet die Funktion an oder aus – nicht die Android-Einstellung „Automatisch drehen" selbst.
-
 ## 🌙 Always-On-Display je nach Bluetooth oder WLAN
 
 Regeln schalten das Always-On-Display (`secure/doze_always_on`) je nach verbundenem Bluetooth-Gerät oder WLAN. Über die Karte **Always-On-Display** Regeln anlegen: gekoppeltes Bluetooth-Gerät oder WLAN-Namen wählen, dann *Always-On-Display an* oder *aus*.
@@ -170,7 +159,6 @@ adb shell settings put system font_scale 1.0
 Hinzufügen in der App unter **⋮ → Kachel „…" hinzufügen** oder in den Schnelleinstellungen über das Stift-Symbol.
 
 - **Augenkomfort** – schaltet den Filter von Hand um und zeigt den Live-Zustand. Ohne laufendes Shizuku ist sie *nicht verfügbar* (ausgegraut).
-- **Drehen in Apps** – schaltet automatisches Drehen in Apps an oder aus; die Unterzeile zeigt die App oder die Anzahl der Apps.
 - **NFC** – schaltet NFC an und aus. Ab Android 16 versucht die App zuerst die offizielle API, sonst (oder wenn Android ablehnt) `svc nfc` über Shizuku. Secure NFC wird nie umgeschaltet, nur angezeigt (*An · Sicher*). Langes Drücken auf die Kachel öffnet die NFC-Einstellungen von Android.
 
 Augenkomfort-Kachel, Schalter auf der Karte und Automatik teilen sich eine Warteschlange – sie können sich also nicht überholen. Schaltest du **während** eine gewählte App vorn ist von Hand um, gilt deine Entscheidung auch nach dem Verlassen der App.
@@ -183,7 +171,7 @@ Voraussetzungen: Android 13 oder neuer, [Shizuku](https://shizuku.rikka.app/) in
 2. Unter **Einrichtung** auf **Shizuku** tippen → im Shizuku-Dialog *Immer zulassen*
 3. Auf **Bedienungshilfe** tippen → *PixelComfort Auto-Aus* einschalten
 4. Auf **Benachrichtigungen** tippen und erlauben, damit die App warnt, wenn Shizuku nicht läuft
-5. Für privates DNS, Mobilfunk-Symbol, automatisches Drehen und Always-On-Display: **⋮ → Erweitert → Berechtigungen**, auf *Sichere Einstellungen ändern* tippen – das erteilt `WRITE_SECURE_SETTINGS`, `WRITE_SETTINGS` und den Zugriff auf Nutzungsdaten einmalig per Shizuku. Solange der Zugriff auf Nutzungsdaten fehlt, bietet ihn oben auf der Startseite eine Karte an (mit Shizuku per Tipp, sonst über die Android-Einstellungen)
+5. Für privates DNS, Mobilfunk-Symbol und Always-On-Display: **⋮ → Erweitert → Berechtigungen**, auf *Sichere Einstellungen ändern* tippen – das erteilt `WRITE_SECURE_SETTINGS`, `WRITE_SETTINGS` und den Zugriff auf Nutzungsdaten einmalig per Shizuku. Solange der Zugriff auf Nutzungsdaten fehlt, bietet ihn oben auf der Startseite eine Karte an (mit Shizuku per Tipp, sonst über die Android-Einstellungen)
 6. Optional: Karte **Augenkomfort** antippen für andere Apps; die übrigen Funktionen mit ihrem Schalter einschalten und über ihre Karte einrichten; **⋮ → Kachel „…" hinzufügen** für die Kacheln
 
 Ist alles erledigt, verschwindet die Einrichtung, und unter dem Titel steht *Alles eingerichtet* oder der letzte Eintrag aus dem Verlauf.
@@ -232,7 +220,6 @@ Die App loggt jede Aktion unter dem Tag `PixelComfort`:
 adb logcat -s 'PixelComfort:*'
 # z. B.:
 # Ziel-App 'com.google.android.GoogleCamera' -> system/cv_enabled AUS (gemerkt=1) ok=true via SHIZUKU: …
-# Drehen: 'com.google.android.youtube' -> accelerometer_rotation=1 (gemerkt=0) ok=true via CONTENT_RESOLVER: …
 ```
 
 Falls der Key auf deinem Gerät anders heißt – selbst finden per Diff:
@@ -250,8 +237,8 @@ Namespace, Key und Werte lassen sich in der App unter **⋮ → Erweitert** anpa
 
 - **Shizuku muss laufen** für Augenkomfort, Anzeigegröße und die NFC-Kachel – ohne Shizuku kann der Key `cv_enabled` nicht geschrieben werden (er ist für Fremd-Apps gesperrt).
 - **Advanced Protection Mode**: Android 17 deaktiviert damit Bedienungshilfen, die keine echten Barrierefreiheits-Tools sind. Die App erkennt das und meldet es unter Einrichtung.
-- Wird die **Bedienungshilfe deaktiviert, während** eine gewählte App offen ist, bleibt der Augenkomfort aus. Schalter auf der Karte, Kachel oder Systemeinstellung nutzen. Privates DNS, Mobilfunk-Symbol, Drehen und Always-On-Display werden in dem Fall zurückgestellt.
-- **Privates DNS, Mobilfunk-Symbol, automatisches Drehen und Always-On-Display-Regeln** wirken nur, solange die Bedienungshilfe aktiv ist.
+- Wird die **Bedienungshilfe deaktiviert, während** eine gewählte App offen ist, bleibt der Augenkomfort aus. Schalter auf der Karte, Kachel oder Systemeinstellung nutzen. Privates DNS, Mobilfunk-Symbol und Always-On-Display werden in dem Fall zurückgestellt.
+- **Privates DNS, Mobilfunk-Symbol und Always-On-Display-Regeln** wirken nur, solange die Bedienungshilfe aktiv ist.
 - **Privates DNS je nach WLAN** braucht die Standort-Berechtigung und eingeschalteten Standort – sonst ist der WLAN-Name nicht lesbar und privates DNS bleibt einfach auch zu Hause an.
 - **WLAN-Regeln fürs Always-On-Display** prüfen nur den WLAN-Namen – anders als beim Heim-WLAN fürs private DNS zählen auch offene Netze.
 - **Vor dem Deinstallieren unterwegs sein** (oder die DNS-Automatik ausschalten): Wird die App im Heim-WLAN entfernt, bleibt privates DNS aus – auch später unterwegs. Android gibt einer App beim Deinstallieren keine Gelegenheit mehr, es wieder einzutragen. Dann von Hand unter *Einstellungen → Netzwerk & Internet → Privates DNS* einschalten. Aus demselben Grund vor dem Deinstallieren *Mobilfunk-Symbol im WLAN ausblenden* abschalten, sonst bleibt das Symbol ausgeblendet.
